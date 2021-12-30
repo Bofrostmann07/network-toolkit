@@ -1,0 +1,15 @@
+--- # User config
+    ssh_username:
+    ssh_password:
+    path_to_csv_file:
+    ssh_port:
+    ssh_timeout:
+    number_of_worker_threads:
+    debug_mode:
+
+--- # Default values !Do not edit any values here!
+  path_to_csv_file:
+  ssh_port: 22
+  ssh_timeout: 2
+  number_of_worker_threads: 8
+  debug_mode: False
