@@ -84,31 +84,31 @@ def check_if_password_is_set_in_config_file(user_config):
     return user_config
 
 
-def combine_default_with_user_config(user_config, default_config):
+def combine_user_config_and_default_config(user_config, default_config):
     for key, value in user_config.items():
         if value is not None:
             default_config[key] = value
     return default_config
 
 
-def generate_config_obj_with_default_config(general_config):
-    general_config_as_obj = GeneralConfiguration(general_config["ssh_username"],
-                                                 general_config["ssh_password"],
-                                                 general_config["path_to_csv_file"],
-                                                 general_config["ssh_port"],
-                                                 general_config["ssh_timeout"],
-                                                 general_config["number_of_worker_threads"],
-                                                 general_config["debug_mode"])
+def generate_config_obj_with_combined_config(combined_config):
+    general_config_as_obj = GeneralConfiguration(combined_config["ssh_username"],
+                                                 combined_config["ssh_password"],
+                                                 combined_config["path_to_csv_file"],
+                                                 combined_config["ssh_port"],
+                                                 combined_config["ssh_timeout"],
+                                                 combined_config["number_of_worker_threads"],
+                                                 combined_config["debug_mode"])
     logging.debug("'config.yml' got successfully loaded and parsed.")
     logging.debug("General Config:", general_config_as_obj)
     return general_config_as_obj
 
 
-def wrapper_generate_general_config():
+def wrapper_generate_global_config():
     check_if_config_yml_exists()
     user_config, default_config = open_and_read_config_file()
     user_config = check_if_username_is_set_in_config_file(user_config)
     user_config = check_if_password_is_set_in_config_file(user_config)
-    general_config = combine_default_with_user_config(user_config, default_config)
-    general_config_as_obj = generate_config_obj_with_default_config(general_config)
-    return general_config_as_obj
+    combined_config = combine_user_config_and_default_config(user_config, default_config)
+    global_config = generate_config_obj_with_combined_config(combined_config)
+    return global_config

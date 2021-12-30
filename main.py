@@ -12,7 +12,7 @@ from time import sleep
 from alive_progress import alive_bar
 from dataclasses import dataclass
 from ssh_connection import ssh_connect_only_one_show_command
-from load_config_file import wrapper_generate_general_config
+from load_global_config import wrapper_generate_global_config
 
 logging.basicConfig(
     # filename='test.log',
@@ -26,6 +26,7 @@ logging.basicConfig(
 # Global variables
 worker_threads = []
 global_config = {}
+
 
 @dataclass
 class NetworkSwitch:
@@ -163,7 +164,8 @@ def validate_raw_switch_data(raw_switch_data):
 
 
 def fill_input_queue_start_worker_fill_output_queue(validated_switch_data):
-    logging.info(f"Starting SSH reachability check on TCP port {global_config.ssh_port} for {len(validated_switch_data)} switches...")
+    logging.info(
+        f"Starting SSH reachability check on TCP port {global_config.ssh_port} for {len(validated_switch_data)} switches...")
     with alive_bar(total=len(validated_switch_data)) as bar:
         stop_event, input_queue, output_queue = start_workers(num_workers=12, bar=bar)
         for switch_element in validated_switch_data:
@@ -270,7 +272,8 @@ def check_if_ssh_login_is_working(switch_data):  # this is super ugly, please cl
 
     if counter_failed_logins >= 1:
         logging.error(f"Authentication failed for {counter_failed_logins} switches")
-        print(f"Check if user '{global_config.ssh_username}' is available, has privilege 15 and the password is correct. Press [enter] to retry.")
+        print(
+            f"Check if user '{global_config.ssh_username}' is available, has privilege 15 and the password is correct. Press [enter] to retry.")
         input("[ENTER]")
         return check_if_ssh_login_is_working(first_three_switches)
     else:
@@ -280,7 +283,8 @@ def check_if_ssh_login_is_working(switch_data):  # this is super ugly, please cl
 
 def wrapper_check_for_ssh_reachability(validated_switch_data):
     results_from_ssh_reachability_checker = fill_input_queue_start_worker_fill_output_queue(validated_switch_data)
-    reachable_switch_data = manipulate_networkswitches_reachability(validated_switch_data, results_from_ssh_reachability_checker)
+    reachable_switch_data = manipulate_networkswitches_reachability(validated_switch_data,
+                                                                    results_from_ssh_reachability_checker)
     return reachable_switch_data
 
 
@@ -307,7 +311,7 @@ def menue():
     print("9. Show Config Values (config.yml)")
     tool_number = input("Tool number: ")
     if tool_number == "1":
-        print("\033[H\033[J", end="")   # Flush terminal
+        print("\033[H\033[J", end="")  # Flush terminal
         logging.info("Tool: NAC Check started")
         logging.info("Starting to process and validate all prerequisites [0/5]")
         tool_nac_check()
@@ -326,7 +330,7 @@ def menue():
 
 def check_all_prerequisites():
     global global_config
-    global_config = wrapper_generate_general_config()
+    global_config = wrapper_generate_global_config()
     return
 
 
