@@ -6,14 +6,6 @@ import logging
 import getpass
 from time import sleep
 
-logging.basicConfig(
-    # filename='test.log',
-    # filemode='w',
-    # format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    format="%(asctime)s %(levelname)s: %(message)s",
-    datefmt="%Y-%m-%dT%H:%M:%SZ",
-    level=logging.INFO
-)
 
 # Global variables
 yaml = YAML(typ='safe')
@@ -58,7 +50,7 @@ def open_and_read_config_file():
             list_of_documents.append(documents)
         user_config = list_of_documents[0]
         default_config = list_of_documents[1]
-        logging.debug(user_config, default_config)
+        logging.debug(f"User Config: {user_config}")
         return user_config, default_config
 
 
@@ -100,7 +92,7 @@ def generate_config_obj_with_combined_config(combined_config):
                                                  combined_config["number_of_worker_threads"],
                                                  combined_config["debug_mode"])
     logging.debug("'config.yml' got successfully loaded and parsed.")
-    logging.debug("General Config:", general_config_as_obj)
+    logging.debug(general_config_as_obj)
     return general_config_as_obj
 
 
