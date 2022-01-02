@@ -201,23 +201,16 @@ def worker(i, stop_event, input_queue, output_queue, bar):
             ip, port = input_queue.get(block=True, timeout=1)
         except Empty:
             continue
-        ssh_reachable = {}
         try:
-            # TCP Socket
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            # Timeout in seconds
-            socket.setdefaulttimeout(global_config.ssh_timeout)
-            result = sock.connect_ex((ip, port))
+            # Open TCP Socket for SSH reachability check
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                socket.setdefaulttimeout(global_config.ssh_timeout)
+                result = sock.connect_ex((ip, port))
             if result == 0:
-                ssh_reachable[ip] = True
                 reachable = True
             else:
-                ssh_reachable[ip] = False
                 reachable = False
-            # Close TCP socket
-            sock.close()
         except Exception as e:
-            ssh_reachable[ip] = False
             reachable = False
             print(e)
         output_queue.put((ip, reachable))
