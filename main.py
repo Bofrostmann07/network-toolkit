@@ -11,7 +11,7 @@ from queue import Queue, Empty
 from time import sleep
 from alive_progress import alive_bar
 from dataclasses import dataclass
-from ssh_connection import ssh_connect_only_one_show_command
+from ssh_connection import ssh_connect_only_one_show_command_singlethreaded, wrapper_send_show_command_to_switches
 from load_global_config import wrapper_generate_global_config
 
 logging.basicConfig(
@@ -251,7 +251,7 @@ def check_if_ssh_login_is_working(switch_data):  # this is super ugly, please cl
     counter_failed_logins = 0
     first_three_switches = switch_data[:2]
     config = get_global_config()
-    raw_cli_output = ssh_connect_only_one_show_command(first_three_switches, cli_show_command, config)
+    raw_cli_output = ssh_connect_only_one_show_command_singlethreaded(first_three_switches, cli_show_command, config)
     for ip, cli_output in raw_cli_output.items():
         logging.debug(cli_output)
         login_success_check = (re.findall(priv_re_pattern, cli_output))
@@ -292,6 +292,8 @@ def orchestrator_create_switches_and_validate():
 def tool_nac_check():
     switch_data = orchestrator_create_switches_and_validate()
     logging.info("All prerequisites are fullfilled.")
+    config = get_global_config()
+    wrapper_send_show_command_to_switches(switch_data, "show vlan", config)
     # cli_show_command = "show privilege"
     # test = ssh_connect_only_one_show_command(switch_data, cli_show_command)
     # print(test)
