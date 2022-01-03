@@ -7,6 +7,8 @@ user_config:
   ssh_timeout:
   number_of_worker_threads:
   debug_mode:
+  skip_ssh_reachability_check:
+  skip_ssh_authentication_check:
 
 default_config: # Default Config - don´t change any values here, edit the user config above
   path_to_csv_file: D:\Downloads\cisco-tools-csv.csv
@@ -14,3 +16,5 @@ default_config: # Default Config - don´t change any values here, edit the user 
   ssh_timeout: 2
   number_of_worker_threads: 8
   debug_mode: False
+  skip_ssh_reachability_check: False
+  skip_ssh_authentication_check: False

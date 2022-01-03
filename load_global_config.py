@@ -19,6 +19,8 @@ class GeneralConfiguration:
     ssh_timeout: int
     number_of_worker_threads: int
     debug_mode: bool
+    skip_ssh_reachability_check: bool
+    skip_ssh_authentication_check: bool
 
 
 def check_if_config_yml_exists():
@@ -77,6 +79,8 @@ def generate_config_obj_with_combined_config(combined_config):
                                                  combined_config["ssh_timeout"],
                                                  combined_config["number_of_worker_threads"],
                                                  combined_config["debug_mode"],
+                                                 combined_config["skip_ssh_reachability_check"],
+                                                 combined_config["skip_ssh_authentication_check"])
     logging.debug("'config.yml' got successfully loaded and parsed.")
     logging.debug(general_config_as_obj)
     return general_config_as_obj
