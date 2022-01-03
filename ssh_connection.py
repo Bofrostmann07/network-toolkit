@@ -6,14 +6,8 @@ from netmiko.ssh_exception import AuthenticationException
 from ntc_templates.parse import parse_output
 import traceback
 
-logging.basicConfig(
-    # filename='test.log',
-    # filemode='w',
-    format="%(asctime)s %(levelname)s: %(message)s",
-    datefmt="%Y-%m-%dT%H:%M:%SZ",
-    level=logging.INFO
-)
 logging.getLogger("paramiko.transport").setLevel(logging.WARNING)
+logging.getLogger("netmiko").setLevel(logging.WARNING)
 
 
 def ssh_connect_only_one_show_command(switch_data, cli_show_command, global_config):
