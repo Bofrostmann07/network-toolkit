@@ -17,10 +17,10 @@ from load_global_config import wrapper_generate_global_config
 logging.basicConfig(
     # filename='test.log',
     # filemode='w',
-    # format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    format="%(asctime)s %(levelname)s: %(message)s",
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    # format="%(asctime)s %(levelname)s: %(message)s",
     datefmt="%Y-%m-%dT%H:%M:%SZ",
-    level=logging.INFO
+    level=logging.DEBUG
 )
 
 # Global variables
@@ -149,11 +149,9 @@ def validate_raw_switch_data(raw_switch_data):
         os_valid_check = re.search(os_re_pattern, switch_element.os)
         if os_valid_check is None:
             os_faulty_counter += 1
-            logging.error(
-                f"Error OS: Line {switch_element.line_number}, {switch_element.hostname}. Faulty entry: {switch_element.os}.")
+            logging.error(f"Error OS: Line {switch_element.line_number}, {switch_element.hostname}. Faulty entry: {switch_element.os}.")
     if ip_faulty_counter >= 1 or os_faulty_counter >= 1:
-        logging.error(
-            f"Validated {len(raw_switch_data)} lines. {ip_faulty_counter} lines have wrong IP and {os_faulty_counter} lines have wrong OS entries.")
+        logging.error(f"Validated {len(raw_switch_data)} lines. {ip_faulty_counter} lines have wrong IP and {os_faulty_counter} lines have wrong OS entries.")
         print("Please change the faulty lines and validate the file again by pressing enter.")
         input("[ENTER]")
         raw_switch_data.clear()
@@ -164,10 +162,9 @@ def validate_raw_switch_data(raw_switch_data):
 
 
 def fill_input_queue_start_worker_fill_output_queue(validated_switch_data):
-    logging.info(
-        f"Starting SSH reachability check on TCP port {global_config.ssh_port} for {len(validated_switch_data)} switches...")
+    logging.info(f"Starting SSH reachability check on TCP port {global_config.ssh_port} for {len(validated_switch_data)} switches...")
     with alive_bar(total=len(validated_switch_data)) as bar:
-        stop_event, input_queue, output_queue = start_workers(num_workers=12, bar=bar)
+        stop_event, input_queue, output_queue = start_workers(num_workers=global_config.number_of_worker_threads, bar=bar)
         for switch_element in validated_switch_data:
             if switch_element.reachable is False:
                 ip = switch_element.ip
@@ -276,8 +273,7 @@ def check_if_ssh_login_is_working(switch_data):  # this is super ugly, please cl
 
 def wrapper_check_for_ssh_reachability(validated_switch_data):
     results_from_ssh_reachability_checker = fill_input_queue_start_worker_fill_output_queue(validated_switch_data)
-    reachable_switch_data = manipulate_networkswitches_reachability(validated_switch_data,
-                                                                    results_from_ssh_reachability_checker)
+    reachable_switch_data = manipulate_networkswitches_reachability(validated_switch_data, results_from_ssh_reachability_checker)
     return reachable_switch_data
 
 
@@ -285,7 +281,7 @@ def orchestrator_create_switches_and_validate():
     validated_csv_file_path = wrapper_validate_path_and_csv_file()
     validated_switch_data = wrapper_read_csv_and_validate_switch_data(validated_csv_file_path)
     reachable_switch_data = wrapper_check_for_ssh_reachability(validated_switch_data)
-    check_if_ssh_login_is_working(reachable_switch_data)
+    # check_if_ssh_login_is_working(reachable_switch_data)                                                            ACTIVE ME AFTER TESTING PLS
     return reachable_switch_data
 
 
