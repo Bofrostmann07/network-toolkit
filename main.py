@@ -5,6 +5,7 @@ import os
 import socket
 import traceback
 import logging
+import json
 # from strictyaml import Map, Str, YAMLValidationError, load, Int
 from threading import Event, Thread
 from queue import Queue, Empty
@@ -281,15 +282,27 @@ def orchestrator_create_switches_and_validate():
     validated_csv_file_path = wrapper_validate_path_and_csv_file()
     validated_switch_data = wrapper_read_csv_and_validate_switch_data(validated_csv_file_path)
     reachable_switch_data = wrapper_check_for_ssh_reachability(validated_switch_data)
-    # check_if_ssh_login_is_working(reachable_switch_data)                                                            ACTIVE ME AFTER TESTING PLS
+    check_if_ssh_login_is_working(reachable_switch_data)
+    logging.info("All prerequisites are fullfilled.")
     return reachable_switch_data
+
+
+def search_for_nac_enabled(parsed_config):
+    search_result = {}
+    for switch_ip, switch_config in parsed_config.items():
+        interface_list = []
+        for interface, config in switch_config.items():
+            if interface.startswith("interface") and "switchport access vlan 20" in config:
+                interface_list.append(interface)
+        search_result[switch_ip] = interface_list
+    print(json.dumps(search_result))
 
 
 def tool_nac_check():
     switch_data = orchestrator_create_switches_and_validate()
-    logging.info("All prerequisites are fullfilled.")
     config = get_global_config()
-    wrapper_send_show_command_to_switches(switch_data, "show vlan", config)
+    parsed_config = wrapper_send_show_command_to_switches(switch_data, "show vlan", config)
+    search_for_nac_enabled(parsed_config)
     # cli_show_command = "show privilege"
     # test = ssh_connect_only_one_show_command(switch_data, cli_show_command)
     # print(test)
