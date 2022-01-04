@@ -4,12 +4,13 @@ from dataclasses import dataclass
 import logging
 import getpass
 from time import sleep
+from pathlib import Path
 
 # Global variables
 yaml = YAML(typ='safe')
 yaml.indent(mapping=2, sequence=4)
-path_to_config_yml = r"C:\Users\Roman\PycharmProjects\cisco-toolkit\config.yml"
-
+# path_to_config_yml = r"C:\Users\Roman\PycharmProjects\cisco-toolkit\config.yml"
+path_to_config_yml = Path.cwd() / "config.yml"
 
 @dataclass(frozen=True)
 class GeneralConfiguration:
