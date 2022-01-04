@@ -73,8 +73,8 @@ def check_if_password_is_set_in_config_file(user_config):
 
 
 def combine_user_config_and_default_config(user_config, default_config):
-    combined_config = user_config
-    for key, value in default_config.items():
+    combined_config = default_config
+    for key, value in user_config.items():
         if value is not None:
             combined_config[key] = value
     return combined_config
