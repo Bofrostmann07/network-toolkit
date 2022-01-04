@@ -128,13 +128,13 @@ def worker(i, stop_event, input_queue, output_queue, bar):
                     converted_cli_output = convert_captured_output_to_dict(ssh_parameter, captured_cli_output) #####
                 # captured_cli_output = parse_output(platform="cisco_ios", command="show vlan", data=raw_cli_output)
         except AuthenticationException:
-            captured_cli_output = {"status": "error - authentication failed"}
+            captured_cli_output = {"status": [False, "authentication failed"]}
             logging.warning(f"Authentication failed for {ssh_parameter['host']}")
         except NetMikoTimeoutException:
-            captured_cli_output = {"status": "error - timeout"}
+            captured_cli_output = {"status": [False, "timeout"]}
             logging.warning(f"SSH timeout for {ssh_parameter['host']}")
         except SSHException:
-            captured_cli_output = {"status": "error - not enabled / not negotiated"}
+            captured_cli_output = {"status": [False, "not enabled / not negotiated"]}
             logging.warning(f"SSH not enabled or could not be negotiated for {ssh_parameter['host']}")
         except Exception:
             traceback.print_exc()
@@ -144,20 +144,21 @@ def worker(i, stop_event, input_queue, output_queue, bar):
 
 
 def parse_show_run(ssh_parameter, raw_cli_output):
-    final_cli_output = {}
+    cli_output = {}
     if raw_cli_output is None:
-        error_note = {"status": "error - did not receive cli output"}
-        final_cli_output[ssh_parameter["host"]] = error_note
+        cli_output[ssh_parameter["host"]] = {"status": [False, "did not receive cli output"]}
         logging.warning(f"{ssh_parameter['host']} - Did not receive CLI output.")
-        return final_cli_output
+        return cli_output
+    print("raw:",raw_cli_output)
     re_pattern = re.compile(r"^(interface.*)\n((?:.*\n)+?)!", re.MULTILINE)  # there is a bug when regex is not matching. Issue #16
-    captured_cli_output = re.findall(re_pattern, raw_cli_output)
-    if captured_cli_output is None:
-        error_note = {"status": "error - regex capture didnt match anything"}
-        final_cli_output[ssh_parameter["host"]] = error_note
+    cli_output = re.findall(re_pattern, raw_cli_output)
+    print("parsed:",cli_output)
+    if cli_output is None:
+        cli_output[ssh_parameter["host"]] = {"status": [False, "regex capture didnt match anything"]}
         logging.warning(f"{ssh_parameter['host']} - RegEx capture didnt match anything.")
-        return final_cli_output
-    return captured_cli_output
+        return cli_output
+    # cli_output[ssh_parameter["host"]] = {"status": [True, "succeeded"]}
+    return cli_output
 
 
 def convert_captured_output_to_dict(ssh_parameter, captured_cli_output):
@@ -170,14 +171,15 @@ def convert_captured_output_to_dict(ssh_parameter, captured_cli_output):
         interface_config_list = [x.strip() for x in interface_config_list]  # Remove leading blanks
         parsed_interface_data[interface_name] = interface_config_list
         final_cli_output[ssh_parameter["host"]] = parsed_interface_data
-    final_cli_output[ssh_parameter["host"]]["status"] = "succeeded"
+    # final_cli_output[ssh_parameter["host"]]["status"] = [True, "succeeded"]
     return final_cli_output
 
 
 def wrapper_send_show_command_to_switches(switch_data, cli_show_command, global_config):
     ssh_parameter_list = construct_ssh_parameter(switch_data, global_config)
     unparsed_cli_output = fill_input_queue_start_worker_fill_output_queue(ssh_parameter_list, cli_show_command, global_config)
-    # print("wrapper output:", unparsed_cli_output)
+    return unparsed_cli_output
+    #print("wrapper output:", unparsed_cli_output)
 
     # vlan_parsed = parse_output(platform="cisco_ios", command="show vlan", data=vlan_output)
     # json_vlan_parsed = (json.dumps(vlan_parsed))
