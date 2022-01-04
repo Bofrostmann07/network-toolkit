@@ -11,7 +11,7 @@ user_config:
   skip_ssh_authentication_check:
 
 default_config: # Default Config - don´t change any values here, edit the user config above
-  path_to_csv_file: D:\Downloads\cisco-tools-csv.csv
+  path_to_csv_file: switchlist.csv
   ssh_port: 22
   ssh_timeout: 2
   number_of_worker_threads: 8
