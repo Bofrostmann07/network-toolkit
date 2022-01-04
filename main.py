@@ -1,12 +1,12 @@
 # -*- coding: UTF-8 -*-
 import csv
 import re
-import os
 import socket
 import traceback
 import logging
 import json
 # from strictyaml import Map, Str, YAMLValidationError, load, Int
+from pathlib import Path
 from threading import Event, Thread
 from queue import Queue, Empty
 from time import sleep
@@ -93,7 +93,7 @@ def check_if_csv_file_existing(path_to_csv):
 
 
 def check_if_csv_file_edited(path_to_csv):
-    file_size = os.path.getsize(path_to_csv)
+    file_size = Path(path_to_csv).stat().st_size
     if file_size > 81:
         logging.debug(f"CSV file seems to be edited. Size: {file_size}B")
         return True
