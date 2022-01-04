@@ -1,4 +1,4 @@
---- # User config
+--- # User config - if you are happy with the default values, just leave them blank
 user_config:
   ssh_username: automate
   ssh_password: automateme
