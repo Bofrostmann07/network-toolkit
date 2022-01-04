@@ -49,7 +49,7 @@ def get_global_config():
 
 
 def wrapper_validate_path_and_csv_file():
-    path_to_csv_from_config = "D:/Downloads/cisco-tools-csv"
+    path_to_csv_from_config = global_config.path_to_csv_file
     while True:
         path_to_csv = check_if_path_ending_with_file_extension(path_to_csv_from_config)
         is_csv_file_existing, path_to_csv = check_if_csv_file_existing(path_to_csv)
