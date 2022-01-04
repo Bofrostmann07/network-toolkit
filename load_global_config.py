@@ -7,6 +7,7 @@ from time import sleep
 
 # Global variables
 yaml = YAML(typ='safe')
+yaml.indent(mapping=2, sequence=4)
 path_to_config_yml = r"C:\Users\Roman\PycharmProjects\cisco-toolkit\config.yml"
 
 
@@ -49,6 +50,7 @@ def check_if_username_is_set_in_config_file(user_config):
             logging.error("Username cant be empty.")
             username = input("Username: ")
         user_config["ssh_username"] = username
+        # safe_to_config_yaml(user_config)
     return user_config
 
 
@@ -60,7 +62,14 @@ def check_if_password_is_set_in_config_file(user_config):
             logging.error("Password cant be empty.")
             password = getpass.getpass("Password: ")
         user_config["ssh_password"] = password
+        # safe_to_config_yaml(user_config)
     return user_config
+
+# this is WIP for #12
+# def safe_to_config_yaml(user_config):
+#     with open(path_to_config_yml, 'w') as fp:
+#         yaml.dump(user_config, fp)
+#     return
 
 
 def combine_user_config_and_default_config(user_config, default_config):
