@@ -9,8 +9,8 @@ from pathlib import Path
 # Global variables
 yaml = YAML(typ='safe')
 yaml.indent(mapping=2, sequence=4)
-# path_to_config_yml = r"C:\Users\Roman\PycharmProjects\cisco-toolkit\config.yml"
-path_to_config_yml = Path.cwd() / "config.yml"
+path_to_config_yml = Path.cwd() / "config/global_config.yml"
+
 
 @dataclass(frozen=True)
 class GeneralConfiguration:
@@ -30,7 +30,7 @@ def check_if_config_yml_exists():
         with open(path_to_config_yml, mode="r", encoding="utf-8"):
             logging.debug("Config File found.")
     except IOError:
-        logging.error(f"Config File 'config.yml' not found/accessible @ {path_to_config_yml}")
+        logging.error(f"Config File 'global_config.yml' not found/accessible @ {path_to_config_yml}")
         sleep(5)
         quit()
 
@@ -45,7 +45,7 @@ def open_and_read_config_file():
 
 def check_if_username_is_set_in_config_file(user_config):
     if user_config["ssh_username"] is None:
-        logging.error("No username is set. Edit 'config.yml' or enter it now.")
+        logging.error("No username is set. Edit 'global_config.yml' or enter it now.")
         username = input("Username: ")
         while username == "":
             logging.error("Username cant be empty.")
@@ -57,7 +57,7 @@ def check_if_username_is_set_in_config_file(user_config):
 
 def check_if_password_is_set_in_config_file(user_config):
     if user_config["ssh_password"] is None:
-        logging.error("No password is set. Edit 'config.yml' or enter it now.")
+        logging.error("No password is set. Edit 'global_config.yml' or enter it now.")
         password = getpass.getpass("Password: ")
         while password == "":
             logging.error("Password cant be empty.")
@@ -91,7 +91,7 @@ def generate_config_obj_with_combined_config(combined_config):
                                                  combined_config["debug_mode"],
                                                  combined_config["skip_ssh_reachability_check"],
                                                  combined_config["skip_ssh_authentication_check"])
-    logging.debug("'config.yml' got successfully loaded and parsed.")
+    logging.debug("'global_config.yml' got successfully loaded and parsed.")
     logging.debug(general_config_as_obj)
     return general_config_as_obj
 
