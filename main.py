@@ -72,21 +72,19 @@ def search_for_nac_enabled(parsed_config):
 
 
 def menue():
-    print("\nPlease choose the Tool:")
-    print("1. NAC Check")
-    print("2. Advanced show interface")
-    print("9. Show Config Values (config.yml)")
+    print("\nPlease choose the Tool by number:")
+    print("1 - Interface search")
+    print("2 - Advanced show interface")
+    print("99 - Show Config Values (global_config.yml)")
     tool_number = input("Tool number: ")
     if tool_number == "1":
         print("\033[H\033[J", end="")  # Flush terminal
-        logging.info("Tool: NAC Check started")
-        logging.info("Starting to process and validate all prerequisites [0/5]")
-        tool_nac_check()
-        # menue()
+        logging.info("Tool: 'Interface search' started")
+        search_command_user_input()
     elif tool_number == "2":
         print("Tool is not implemented yet.")
         menue()
-    elif tool_number == "9":
+    elif tool_number == "99":
         print(global_config)
         menue()
     else:
