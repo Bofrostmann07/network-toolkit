@@ -7,10 +7,10 @@ from get_and_validate_switchlist_csv import orchestrator_create_switches_and_val
 logging.basicConfig(
     # filename='test.log',
     # filemode='w',
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    # format="%(asctime)s %(levelname)s: %(message)s",
+    # format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    format="%(asctime)s %(levelname)s: %(message)s",
     datefmt="%Y-%m-%dT%H:%M:%SZ",
-    level=logging.DEBUG
+    level=logging.INFO
 )
 global_config = {}
 
