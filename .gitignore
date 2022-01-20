@@ -54,3 +54,5 @@ ENV/
 .idea
 .svn
 .git
+raw_output/**/*.json
+results/*.json
