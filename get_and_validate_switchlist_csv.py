@@ -85,7 +85,7 @@ def fill_class_networkswitch_from_csv_data(path_to_csv):
             hostname = row.get("hostname") or "No Hostname"
             ip = row.get("ip") or "No IP"
             os = row.get("os") or "No OS"
-            switch_data = NetworkSwitch(hostname=hostname, ip=ip, os=os, reachable=True, line_number=line_number)
+            switch_data = NetworkSwitch(hostname=hostname, ip=ip, os=os, reachable=False, line_number=line_number)
             switches_data.append(switch_data)
     logging.info(f"Read {len(switches_data)} rows from CSV. [2/5]")
     return switches_data
@@ -228,7 +228,17 @@ def check_if_ssh_login_is_working(switch_data):  # TODO this is super ugly, plea
         return
 
 
+def skip_ssh_reachability_check_if_enabled(validated_switch_data):
+    for switch_element in validated_switch_data:
+        switch_element.reachable = True
+    logging.info("Skip: SSH reachability check. [4/5]")
+    return validated_switch_data
+
+
 def wrapper_check_for_ssh_reachability(validated_switch_data):
+    if global_config.skip_ssh_reachability_check:
+        reachable_switch_data = skip_ssh_reachability_check_if_enabled(validated_switch_data)
+        return reachable_switch_data
     results_from_ssh_reachability_checker = fill_input_queue_start_worker_fill_output_queue(validated_switch_data)
     reachable_switch_data = manipulate_networkswitches_reachability(validated_switch_data, results_from_ssh_reachability_checker)
     return reachable_switch_data
