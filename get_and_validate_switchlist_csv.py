@@ -10,6 +10,7 @@ from queue import Queue, Empty
 from time import sleep
 from alive_progress import alive_bar
 from ssh_connection import ssh_connect_only_one_show_command_singlethreaded
+from validate_csv_path_and_file import get_csv_path_and_validate_header
 
 # Global variables
 worker_threads = []
@@ -65,71 +66,6 @@ def is_main():
 def get_global_config():
     config = global_config
     return config
-
-
-def validate_path_and_csv_file():
-    logging.info("Starting to process and validate all prerequisites [0/5]")
-    path_to_csv_from_config = global_config.path_to_csv_file
-    while True:
-        path_to_csv = check_if_path_ending_with_file_extension(path_to_csv_from_config)
-        is_csv_file_existing, path_to_csv = check_if_csv_file_existing(path_to_csv)
-        if is_csv_file_existing:
-            break
-    while True:
-        is_csv_file_edited = check_if_csv_file_edited(path_to_csv)
-        if is_csv_file_edited:
-            break
-    return path_to_csv
-
-
-def check_if_path_ending_with_file_extension(path_to_csv):
-    file_extension_re_pattern = re.compile(r"^.*\.csv$")
-    valid_check = re.search(file_extension_re_pattern, path_to_csv)
-    if valid_check is None:
-        edited_path_to_csv = path_to_csv + ".csv"
-        logging.debug("File extension is missing. Adding '.csv' to file path.")
-        return edited_path_to_csv
-    else:
-        logging.debug("File extension exists.")
-        return path_to_csv
-
-
-def check_if_csv_file_existing(path_to_csv):
-    try:
-        with open(path_to_csv):
-            logging.info(f"CSV file found @ {path_to_csv} [1/5]")
-            return True, path_to_csv
-    except FileNotFoundError:
-        logging.error(f"CSV file could not be found @ {path_to_csv}. Please enter absolute path.")
-        user_entered_path_to_csv = input("CSV Path: ")
-        return False, user_entered_path_to_csv
-    except PermissionError:
-        logging.error(f"No Permission to access {path_to_csv}. Grant permission or enter absolute path.")
-        print("Press [enter] to proceed after you granted permission.")
-        user_entered_path_to_csv = input("[ENTER]/CSV Path:")
-        return False, user_entered_path_to_csv
-    except Exception:
-        traceback.print_exc()
-
-
-def check_if_csv_file_edited(path_to_csv):
-    file_size = Path(path_to_csv).stat().st_size
-    if file_size > 81:
-        logging.debug(f"CSV file seems to be edited. Size: {file_size}B")
-        return True
-    else:
-        logging.warning("CSV file seems to be unedited.")
-        print("Press [enter] to check the CSV file once more, after you edited it.")
-        print("Enter '[c]ontinue' to proceed.")
-        user_input = input("[ENTER]/[c]:")
-        if user_input == "":
-            return False
-        elif user_input == "c" or user_input == "continue":
-            logging.info("Proceeding with unedited CSV file")
-            return True
-        else:
-            logging.error("Invalid Input")
-            return check_if_csv_file_edited(path_to_csv)
 
 
 def wrapper_read_csv_and_validate_switch_data(csv_file_path):
@@ -300,7 +236,7 @@ def wrapper_check_for_ssh_reachability(validated_switch_data):
 
 def orchestrator_create_switches_and_validate(config):
     set_global_config(config)
-    validated_csv_file_path = validate_path_and_csv_file()
+    validated_csv_file_path = get_csv_path_and_validate_header(config)
     validated_switch_data = wrapper_read_csv_and_validate_switch_data(validated_csv_file_path)
     reachable_switch_data = wrapper_check_for_ssh_reachability(validated_switch_data)
     check_if_ssh_login_is_working(reachable_switch_data)
