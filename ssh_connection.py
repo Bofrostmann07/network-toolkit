@@ -139,7 +139,7 @@ def worker(stop_event, input_queue, output_queue, bar):
 def create_json_file(parsed_cli_output):
     local_time = datetime.now()
     timestamp_url_safe = (local_time.strftime("%Y-%m-%dT%H-%M-%S"))
-    file_path = "raw_output/show_derived_config_interfaces/" + timestamp_url_safe + ".json"
+    file_path = "raw_output/interface_eth_config/" + timestamp_url_safe + ".json"
     try:
         with open(file_path, "x") as json_file:
             json.dump(parsed_cli_output, json_file, indent=2)
