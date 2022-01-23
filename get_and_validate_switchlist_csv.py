@@ -70,14 +70,14 @@ def get_global_config():
 
 def wrapper_read_csv_and_validate_switch_data(csv_file_path):
     while True:
-        raw_switch_data = read_switch_data_from_csv(csv_file_path)
+        raw_switch_data = fill_class_networkswitch_from_csv_data(csv_file_path)
         is_data_valid = validate_raw_switch_data(raw_switch_data)
         if is_data_valid:
             break
     return raw_switch_data
 
 
-def read_switch_data_from_csv(path_to_csv):
+def fill_class_networkswitch_from_csv_data(path_to_csv):
     switches_data = []
     with open(path_to_csv, mode="r", encoding="utf-8") as csv_switch_file:
         raw_csv_data = csv.DictReader(csv_switch_file)
@@ -85,7 +85,7 @@ def read_switch_data_from_csv(path_to_csv):
             hostname = row.get("hostname") or "No Hostname"
             ip = row.get("ip") or "No IP"
             os = row.get("os") or "No OS"
-            switch_data = NetworkSwitch(hostname, ip, os, False, line_number)
+            switch_data = NetworkSwitch(hostname=hostname, ip=ip, os=os, reachable=True, line_number=line_number)
             switches_data.append(switch_data)
     logging.info(f"Read {len(switches_data)} rows from CSV. [2/5]")
     return switches_data
