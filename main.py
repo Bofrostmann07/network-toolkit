@@ -58,7 +58,7 @@ def search_command_user_input():
 
 
 def read_dir_and_get_file_names():
-    path = "raw_output/show_derived_config_interfaces/"
+    path = "raw_output/interface_eth_config/"
     try:
         all_files = os.listdir(path)
         return all_files
@@ -85,7 +85,7 @@ def display_text_for_prompt_to_select_output_file(filtered_file_list):
 
 
 def prompt_to_select_output_file(filtered_file_list):
-    file_path = "raw_output/show_derived_config_interfaces/"
+    file_path = "raw_output/interface_eth_config/"
     user_input = input()
     if user_input == "" or user_input == "latest":
         output_file_path = file_path + filtered_file_list[-1]
