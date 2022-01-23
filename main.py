@@ -2,6 +2,7 @@
 import logging
 import json
 import os
+import signal
 from datetime import datetime
 from ssh_connection import wrapper_send_show_command_to_switches
 from load_global_config import wrapper_generate_global_config
@@ -191,6 +192,15 @@ def check_all_prerequisites():
     global global_config
     global_config = wrapper_generate_global_config()
     return
+
+
+def signal_handler(sig, frame):
+    # Signal handler for processing CTRL+C
+    logging.warning("Received keyboard interrupt. Stopping!")
+    quit()
+
+
+signal.signal(signal.SIGINT, signal_handler)
 
 
 if is_main():
