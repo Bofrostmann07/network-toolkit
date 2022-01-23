@@ -85,8 +85,7 @@ def wrapper_check_csv_header(path_to_csv, header_template):
 def extract_csv_header(path_to_csv):
     with open(path_to_csv, mode="r", encoding="utf-8") as csv_file:
         raw_csv_data = csv.DictReader(csv_file)
-        raw_header = raw_csv_data.__next__()
-        header = list(raw_header)
+        header = raw_csv_data.fieldnames
         return header
 
 
