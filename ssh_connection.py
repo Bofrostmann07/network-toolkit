@@ -88,8 +88,8 @@ def fill_input_queue_start_worker_fill_output_queue(switches, cli_show_command, 
         except Empty:
             pass
         else:
-            combined_cli_output.update(switch_element.config_to_dict())
-    logging.debug(json.dumps(combined_cli_output))
+            final_interface_eth_config = switch_element.config_to_dict()
+            combined_cli_output.update(final_interface_eth_config)
     return combined_cli_output
 
 
