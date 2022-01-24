@@ -2,9 +2,7 @@
 import csv
 import re
 import socket
-import traceback
 import logging
-from pathlib import Path
 from threading import Event, Thread
 from queue import Queue, Empty
 from time import sleep
@@ -27,7 +25,8 @@ class NetworkSwitch:
 
         self.parse_status = False
         self.parse_error = ""
-        self.config = ""
+        self.interface_eth_config = ""
+        self.interface_vlan_config = ""
 
     def parse_cli_output(self, raw_cli_output):
         if raw_cli_output is None:
@@ -43,24 +42,38 @@ class NetworkSwitch:
             logging.warning(self.parse_error)
             return
 
-        self.config = parsed_cli_output
+        self.interface_eth_config = parsed_cli_output
         self.parse_status = True
 
+    # def config_to_dict(self):
+    #     parsed_interface_data = {}
+    #     final_cli_output = {}
+    #     for element in self.config:
+    #         interface_name = element[0]
+    #         interface_eth_config = element[1]
+    #         interface_config_list = interface_eth_config.split("\n ")
+    #         interface_config_list = [x.strip() for x in interface_config_list]  # Remove leading blanks
+    #         parsed_interface_data[interface_name] = interface_config_list
+    #     final_cli_output[self.ip] = parsed_interface_data
+    #     return final_cli_output
+
     def config_to_dict(self):
-        parsed_interface_data = {}
-        final_cli_output = {}
-        for element in self.config:
+        interface_eth_config = {}
+        interface_vlan_config = {}
+        final_interface_eth_config = {}
+        final_interface_vlan_config = {}
+        for element in self.interface_eth_config:
             interface_name = element[0]
             interface_config = element[1]
             interface_config_list = interface_config.split("\n ")
             interface_config_list = [x.strip() for x in interface_config_list]  # Remove leading blanks
-            parsed_interface_data[interface_name] = interface_config_list
-        final_cli_output[self.ip] = parsed_interface_data
-        return final_cli_output
-
-
-def is_main():
-    return __name__ == "__main__"
+            if interface_name.startswith("interface Vlan"):
+                interface_vlan_config[interface_name] = interface_config_list
+                final_interface_vlan_config[self.ip] = interface_vlan_config
+            elif interface_name.startswith("interface"):
+                interface_eth_config[interface_name] = interface_config_list
+                final_interface_eth_config[self.ip] = interface_eth_config
+        return final_interface_eth_config
 
 
 def get_global_config():
