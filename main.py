@@ -5,7 +5,7 @@ import os
 import signal
 from datetime import datetime
 from ssh_connection import wrapper_send_show_command_to_switches
-from load_global_config import wrapper_generate_global_config
+from load_config_files import wrapper_load_config
 from get_and_validate_switchlist_csv import orchestrator_create_switches_and_validate
 
 logging.basicConfig(
@@ -190,7 +190,8 @@ def menue():
 
 def check_all_prerequisites():
     global global_config
-    global_config = wrapper_generate_global_config()
+    tool_name = "global"
+    global_config = wrapper_load_config(tool_name)
     return
 
 
