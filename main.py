@@ -169,10 +169,11 @@ def write_search_result(search_result, output_file_path, search_command, positiv
 
 
 def menue():
-    print("\nPlease choose the Tool by number:")
-    print("1 - Interface search")
-    print("2 - Advanced show interface")
-    print("99 - Show Config Values (global_config.yml)")
+    print("\nPlease choose the Tool by number:\n"
+          "1 - Interface search\n"
+          "2 - Advanced show interface\n"
+          "3 - Meraki bulk edit\n"
+          "99 - Show Config Values (global_config.yml)")
     tool_number = input("Tool number: ")
     if tool_number == "1":
         print("\033[H\033[J", end="")  # Flush terminal
@@ -180,6 +181,9 @@ def menue():
         search_command_user_input()
     elif tool_number == "2":
         print("Tool is not implemented yet.")
+        menue()
+    elif tool_number == "3":
+        print("Tool will soon be available.")
         menue()
     elif tool_number == "99":
         print(global_config)
