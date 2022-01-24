@@ -4,6 +4,7 @@ import json
 import os
 import signal
 from datetime import datetime
+from pathlib import Path
 from ssh_connection import wrapper_send_show_command_to_switches
 from load_config_files import wrapper_load_config
 from get_and_validate_switchlist_csv import orchestrator_create_switches_and_validate
@@ -53,7 +54,7 @@ def search_command_user_input():
     search_command, positive_search = prompt_for_search_command()
     output_file = open_selected_output_file(output_file_path)
     search_result = search_in_output_file(output_file, search_command, positive_search)
-    write_search_result(search_result)
+    write_search_result(search_result, output_file_path, search_command, positive_search)
     menue()
 
 
@@ -89,12 +90,14 @@ def prompt_to_select_output_file(filtered_file_list):
     user_input = input()
     if user_input == "" or user_input == "latest":
         output_file_path = file_path + filtered_file_list[-1]
+        absolute_file_path = Path.cwd() / output_file_path
         logging.info(f"Using lastet file '{filtered_file_list[-1]}'")
-        return output_file_path
+        return absolute_file_path
     elif user_input in filtered_file_list:
         output_file_path = file_path + user_input
+        absolute_file_path = Path.cwd() / output_file_path
         logging.info(f"Using file '{user_input}'")
-        return output_file_path
+        return absolute_file_path
     elif user_input == "get":
         tool_nac_check()
     elif user_input == "dir" or user_input == "ls":
@@ -153,18 +156,17 @@ def search_in_output_file(output_file, search_command, positive_search):
     return search_result
 
 
-def write_search_result(search_result):
+def write_search_result(search_result, output_file_path, search_command, positive_search):
     local_time = datetime.now()
     timestamp_url_safe = (local_time.strftime("%Y-%m-%dT%H-%M-%S"))
     file_path = "results/" + timestamp_url_safe + ".json"
     with open(file_path, "x") as json_file:
+        json_file.write(f"This result is based on data @ {output_file_path}.\n"
+                        f"Search command: '{search_command}'. Positive Search: {positive_search}\n\n")
         json.dump(search_result, json_file, indent=2)
+        json_file.write("\n\nThis result was created by 'https://github.com/Bofrostmann07/cisco-toolkit'.")
     logging.info(f"Wrote {file_path}. Search is done.")
 
-
-# TODO strip VLAN interfaces
-# TODO better file names for results (include show command), list it in the file addiontily
-# TODO add credentials and link to repo the search results
 
 def menue():
     print("\nPlease choose the Tool by number:")
