@@ -164,7 +164,7 @@ def write_search_result(search_result, output_file_path, search_command, positiv
         json_file.write(f"This result is based on data @ {output_file_path}.\n"
                         f"Search command: '{search_command}'. Positive Search: {positive_search}\n\n")
         json.dump(search_result, json_file, indent=2)
-        json_file.write("\n\nThis result was created by 'https://github.com/Bofrostmann07/cisco-toolkit'.")
+        json_file.write("\n\nThis result was created by 'https://github.com/Bofrostmann07/network-toolkit'.")
     logging.info(f"Wrote {file_path}. Search is done.")
 
 
