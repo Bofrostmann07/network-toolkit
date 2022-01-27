@@ -16,7 +16,7 @@ from datetime import datetime
 logging.getLogger("paramiko.transport").setLevel(logging.WARNING)
 logging.getLogger("netmiko").setLevel(logging.WARNING)
 
-tool_config = None
+tool_config = None  # TODO this is the global config, not tool config
 worker_threads = []
 
 
