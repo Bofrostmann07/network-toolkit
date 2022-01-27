@@ -46,7 +46,9 @@ def fetch_switch_config():
 
 
 def search_command_user_input():
-    all_files = read_dir_and_get_file_names()
+    tool_name = "search_interface_eth"
+    tool_config = wrapper_load_config(tool_name)
+    all_files = read_dir_and_get_file_names(tool_config)
     filtered_file_list = build_list_of_all_files(all_files)
     display_text_for_prompt_to_select_output_file(filtered_file_list)
     path_output_file = prompt_to_select_output_file(filtered_file_list)
@@ -54,17 +56,16 @@ def search_command_user_input():
     search_command, positive_search = prompt_for_search_command()
     output_file = open_selected_output_file(path_output_file)
     search_result = search_in_output_file(output_file, search_command, positive_search)
-    write_search_result(search_result, output_file_path, search_command, positive_search)
+    write_search_result(search_result, path_output_file, search_command, positive_search, tool_config)
     menue()
 
 
-def read_dir_and_get_file_names():
-    path = "raw_output/interface_eth_config/"
+def read_dir_and_get_file_names(tool_config):
     try:
-        all_files = os.listdir(path)
+        all_files = os.listdir(tool_config.path_raw_output)
         return all_files
     except FileNotFoundError:
-        logging.error(f"Could not found {path}")
+        logging.error(f"Could not found {tool_config.path_raw_output}")
         quit()
 
 
@@ -156,10 +157,10 @@ def search_in_output_file(output_file, search_command, positive_search):
     return search_result
 
 
-def write_search_result(search_result, output_file_path, search_command, positive_search):
+def write_search_result(search_result, path_output_file, search_command, positive_search, tool_config):
     local_time = datetime.now()
     timestamp_url_safe = (local_time.strftime("%Y-%m-%dT%H-%M-%S"))
-    file_path = "results/" + timestamp_url_safe + ".json"
+    file_path = tool_config.path_results + timestamp_url_safe + ".json"
     with open(file_path, "x") as json_file:
         json_file.write(f"This result is based on data @ {path_output_file}.\n"
                         f"Search command: '{search_command}'. Positive Search: {positive_search}\n\n")

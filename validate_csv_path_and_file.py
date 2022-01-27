@@ -103,7 +103,7 @@ def check_if_csv_header_matches_template(header_csv, header_template):
     return is_header_valid
 
 
-def get_csv_path_and_validate_header(config):
+def get_csv_path_and_validate_header(config, tool_config):
     set_global_config(config)
     path_to_csv = wrapper_validate_csv_path()
     check_if_csv_file_edited(path_to_csv)
