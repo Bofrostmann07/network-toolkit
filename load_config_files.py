@@ -28,8 +28,8 @@ class ToolConfiguration:
     input_file: str
     output_needs_parse: bool
     parse_pattern: str
-    raw_output: str
-    results: str
+    path_raw_output: str
+    path_results: str
 
 
 def select_config_file(tool_name):
@@ -127,8 +127,8 @@ def create_interface_eth_config(config_values):
     tool_config = ToolConfiguration(config_values["input_file"],
                                     config_values["output_needs_parse"],
                                     config_values["parse_pattern"],
-                                    config_values["raw_output"],
-                                    config_values["results"])
+                                    config_values["path_raw_output"],
+                                    config_values["path_results"])
     logging.debug("'tool_config.yml' got successfully loaded and parsed.")
     logging.debug(tool_config)
     return tool_config

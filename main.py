@@ -29,7 +29,7 @@ def get_global_config():
     return config
 
 
-def tool_nac_check():
+def fetch_switch_config():
     config = get_global_config()
     switch_data = orchestrator_create_switches_and_validate(config)
 
@@ -49,10 +49,10 @@ def search_command_user_input():
     all_files = read_dir_and_get_file_names()
     filtered_file_list = build_list_of_all_files(all_files)
     display_text_for_prompt_to_select_output_file(filtered_file_list)
-    output_file_path = prompt_to_select_output_file(filtered_file_list)
+    path_output_file = prompt_to_select_output_file(filtered_file_list)
     display_text_for_prompt_for_search_command()
     search_command, positive_search = prompt_for_search_command()
-    output_file = open_selected_output_file(output_file_path)
+    output_file = open_selected_output_file(path_output_file)
     search_result = search_in_output_file(output_file, search_command, positive_search)
     write_search_result(search_result, output_file_path, search_command, positive_search)
     menue()
@@ -99,7 +99,7 @@ def prompt_to_select_output_file(filtered_file_list):
         logging.info(f"Using file '{user_input}'")
         return absolute_file_path
     elif user_input == "get":
-        tool_nac_check()
+        fetch_switch_config()
     elif user_input == "dir" or user_input == "ls":
         print(filtered_file_list)
         return prompt_to_select_output_file(filtered_file_list)
@@ -112,7 +112,7 @@ def prompt_user_when_no_shrun_file_exist():
     logging.warning("Could not find a 'show run' file.")
     user_input = input("Retrieve from switches now? [yes]/no: ")
     if user_input == "yes" or user_input == "":
-        tool_nac_check()
+        fetch_switch_config()
     else:
         print("\033[H\033[J", end="")  # Flush terminal
         menue()
@@ -139,8 +139,8 @@ def prompt_for_search_command():
     return search_command, positive_search
 
 
-def open_selected_output_file(output_file_path):
-    with open(output_file_path, mode="r", encoding="utf-8") as serial_output_file:
+def open_selected_output_file(path_output_file):
+    with open(path_output_file, mode="r", encoding="utf-8") as serial_output_file:
         output_file = json.load(serial_output_file)
     return output_file
 
@@ -161,7 +161,7 @@ def write_search_result(search_result, output_file_path, search_command, positiv
     timestamp_url_safe = (local_time.strftime("%Y-%m-%dT%H-%M-%S"))
     file_path = "results/" + timestamp_url_safe + ".json"
     with open(file_path, "x") as json_file:
-        json_file.write(f"This result is based on data @ {output_file_path}.\n"
+        json_file.write(f"This result is based on data @ {path_output_file}.\n"
                         f"Search command: '{search_command}'. Positive Search: {positive_search}\n\n")
         json.dump(search_result, json_file, indent=2)
         json_file.write("\n\nThis result was created by 'https://github.com/Bofrostmann07/network-toolkit'.")
