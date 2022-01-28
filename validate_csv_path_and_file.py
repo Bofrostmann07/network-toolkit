@@ -107,7 +107,7 @@ def get_csv_path_and_validate_header(config, tool_config):
     set_global_config(config)
     path_to_csv = wrapper_validate_csv_path()
     check_if_csv_file_edited(path_to_csv)
-    header_template = ['hostname', 'ip', 'os']  # Template for tool 'Interface search'
+    header_template = ['hostname', 'ip', 'os']  # TODO Template for tool 'Interface search'
     wrapper_check_csv_header(path_to_csv, header_template)
     return path_to_csv
 
