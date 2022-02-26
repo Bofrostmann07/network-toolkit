@@ -16,7 +16,7 @@ from datetime import datetime
 logging.getLogger("paramiko.transport").setLevel(logging.WARNING)
 logging.getLogger("netmiko").setLevel(logging.WARNING)
 
-tool_config = None  # TODO this is the global config, not tool config
+global_config = None
 worker_threads = []
 
 
@@ -94,13 +94,13 @@ def run_show_command(switches, cli_show_command):
 
 
 def fetch_switch_config(switch_element, command):
-    global tool_config
+    global global_config
     ssh_parameter = {
         'device_type': switch_element.os,
         'host': switch_element.ip,
-        'username': tool_config.ssh_username,
-        'password': tool_config.ssh_password,
-        'port': tool_config.ssh_port
+        'username': global_config.ssh_username,
+        'password': global_config.ssh_password,
+        'port': global_config.ssh_port
     }
 
     raw_cli_output = ""
@@ -149,9 +149,9 @@ def create_json_file(parsed_cli_output):
     return
 
 
-def wrapper_send_show_command_to_switches(switch_data, cli_show_command, global_config):
-    global tool_config
-    tool_config = global_config
+def wrapper_send_show_command_to_switches(switch_data, cli_show_command, config):
+    global global_config
+    global_config = config
 
     cli_show_command = "show derived-config | begin interface"
     parsed_cli_output = run_show_command(switch_data, cli_show_command)
