@@ -51,7 +51,7 @@ def ssh_connect_only_one_show_command_singlethreaded(switch_data, cli_show_comma
     return output_data
 
 
-def start_workers(num_workers, bar):
+def create_thread_pool(num_workers, bar):
     stop_event = Event()
     input_queue = Queue()
     output_queue = Queue()
@@ -63,10 +63,10 @@ def start_workers(num_workers, bar):
     return stop_event, input_queue, output_queue
 
 
-def fill_input_queue_start_worker_fill_output_queue(switches, cli_show_command, global_config):
+def run_show_command(switches, cli_show_command):
     logging.info(f"Starting to execute '{cli_show_command}' on {len(switches)} switches...")
     with alive_bar(total=len(switches)) as bar:
-        stop_event, input_queue, output_queue = start_workers(num_workers=global_config.number_of_worker_threads, bar=bar)
+        stop_event, input_queue, output_queue = create_thread_pool(num_workers=global_config.number_of_worker_threads, bar=bar)
 
         for switch_element in switches:
             input_queue.put((switch_element, cli_show_command))
@@ -154,7 +154,7 @@ def wrapper_send_show_command_to_switches(switch_data, cli_show_command, global_
     tool_config = global_config
 
     cli_show_command = "show derived-config | begin interface"
-    parsed_cli_output = fill_input_queue_start_worker_fill_output_queue(switch_data, cli_show_command, global_config)
+    parsed_cli_output = run_show_command(switch_data, cli_show_command)
     create_json_file(parsed_cli_output)
     return parsed_cli_output
 
