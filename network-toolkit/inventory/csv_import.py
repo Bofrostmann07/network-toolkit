@@ -7,73 +7,13 @@ from threading import Event, Thread
 from queue import Queue, Empty
 from time import sleep
 from alive_progress import alive_bar
-from ssh_connection import ssh_connect_only_one_show_command_singlethreaded
-from validate_csv_path_and_file import get_csv_path_and_validate_header
+# from ssh_connection import ssh_connect_only_one_show_command_singlethreaded # TODO wieder aktivieren
+from .validator.csv_validator import get_csv_path_and_validate_header, validate_raw_csv_switch_data  # TODO . weg
+from .network_switch import NetworkSwitch
 
 # Global variables
 worker_threads = []
 global_config = {}
-
-
-class NetworkSwitch:
-    def __init__(self, hostname, ip, os, reachable, line_number):
-        self.hostname = hostname
-        self.ip = ip
-        self.os = os
-        self.reachable = reachable
-        self.line_number = line_number
-
-        self.parse_status = False
-        self.parse_error = ""
-        self.interface_eth_config = ""
-        self.interface_vlan_config = ""
-
-    def parse_cli_output(self, raw_cli_output):
-        if raw_cli_output is None:
-            self.parse_error = f"{self.ip} - Did not receive CLI output."
-            logging.warning(self.parse_error)
-            return
-
-        re_pattern = re.compile(r"^(interface.*)\n((?:.*\n)+?)!", re.MULTILINE)
-        parsed_cli_output = re_pattern.findall(raw_cli_output)
-
-        if parsed_cli_output is None:
-            self.parse_error = f"{self.ip} - RegEx capture didnt match anything."
-            logging.warning(self.parse_error)
-            return
-
-        self.interface_eth_config = parsed_cli_output
-        self.parse_status = True
-
-    # def config_to_dict(self):
-    #     parsed_interface_data = {}
-    #     final_cli_output = {}
-    #     for element in self.config:
-    #         interface_name = element[0]
-    #         interface_eth_config = element[1]
-    #         interface_config_list = interface_eth_config.split("\n ")
-    #         interface_config_list = [x.strip() for x in interface_config_list]  # Remove leading blanks
-    #         parsed_interface_data[interface_name] = interface_config_list
-    #     final_cli_output[self.ip] = parsed_interface_data
-    #     return final_cli_output
-
-    def config_to_dict(self):
-        interface_eth_config = {}
-        interface_vlan_config = {}
-        final_interface_eth_config = {}
-        final_interface_vlan_config = {}
-        for element in self.interface_eth_config:
-            interface_name = element[0]
-            interface_config = element[1]
-            interface_config_list = interface_config.split("\n ")
-            interface_config_list = [x.strip() for x in interface_config_list]  # Remove leading blanks
-            if interface_name.startswith("interface Vlan"):
-                interface_vlan_config[interface_name] = interface_config_list
-                final_interface_vlan_config[self.ip] = interface_vlan_config
-            elif interface_name.startswith("interface"):
-                interface_eth_config[interface_name] = interface_config_list
-                final_interface_eth_config[self.ip] = interface_eth_config
-        return final_interface_eth_config
 
 
 def get_global_config():
@@ -83,14 +23,14 @@ def get_global_config():
 
 def wrapper_read_csv_and_validate_switch_data(csv_file_path):
     while True:
-        raw_switch_data = fill_class_networkswitch_from_csv_data(csv_file_path)
-        is_data_valid = validate_raw_switch_data(raw_switch_data)
+        raw_switch_data = import_csv_fill_class_networkswitch(csv_file_path)
+        is_data_valid = validate_raw_csv_switch_data(raw_switch_data)
         if is_data_valid:
             break
     return raw_switch_data
 
 
-def fill_class_networkswitch_from_csv_data(path_to_csv):
+def import_csv_fill_class_networkswitch(path_to_csv):
     switches_data = []
     with open(path_to_csv, mode="r", encoding="utf-8") as csv_switch_file:
         raw_csv_data = csv.DictReader(csv_switch_file)
@@ -102,33 +42,6 @@ def fill_class_networkswitch_from_csv_data(path_to_csv):
             switches_data.append(switch_data)
     logging.info(f"Read {len(switches_data)} rows from CSV. [2/5]")
     return switches_data
-
-
-def validate_raw_switch_data(raw_switch_data):
-    # RegEx Pattern for IPv4 address from https://stackoverflow.com/a/36760050
-    ip_re_pattern = re.compile(r"^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)(\.(?!$)|$)){4}$")
-    os_re_pattern = re.compile(r"\bcisco_xe\b|\bcisco_ios\b")
-    ip_faulty_counter = 0
-    os_faulty_counter = 0
-    for switch_element in raw_switch_data:
-        ip_valid_check = re.search(ip_re_pattern, switch_element.ip)
-        if ip_valid_check is None:
-            ip_faulty_counter += 1
-            logging.error(
-                f"Error IP: Line {switch_element.line_number}, {switch_element.hostname}. Faulty entry: {switch_element.ip}.")
-        os_valid_check = re.search(os_re_pattern, switch_element.os)
-        if os_valid_check is None:
-            os_faulty_counter += 1
-            logging.error(f"Error OS: Line {switch_element.line_number}, {switch_element.hostname}. Faulty entry: {switch_element.os}.")
-    if ip_faulty_counter >= 1 or os_faulty_counter >= 1:
-        logging.error(f"Validated {len(raw_switch_data)} lines. {ip_faulty_counter} lines have wrong IP and {os_faulty_counter} lines have wrong OS entries.")
-        print("Please change the faulty lines and validate the file again by pressing enter.")
-        input("[ENTER]")
-        raw_switch_data.clear()
-        return False
-    else:
-        logging.info(f"Validated {len(raw_switch_data)} lines. No lines are faulty. [3/5]")
-        return True
 
 
 def skip_ssh_reachability_check_if_enabled(validated_switch_data):
@@ -234,7 +147,8 @@ def check_if_ssh_login_is_working(switch_data):  # TODO this is super ugly, plea
     counter_failed_logins = 0
     first_three_switches = switch_data[:2]
     config = get_global_config()
-    raw_cli_output = ssh_connect_only_one_show_command_singlethreaded(first_three_switches, cli_show_command, config)
+    # raw_cli_output = ssh_connect_only_one_show_command_singlethreaded(first_three_switches, cli_show_command, config)
+    raw_cli_output = {}
     for ip, cli_output in raw_cli_output.items():
         logging.debug(cli_output)
         login_success_check = (re.findall(priv_re_pattern, cli_output))
@@ -265,7 +179,7 @@ def wrapper_check_for_ssh_reachability(validated_switch_data):
     return reachable_switch_data
 
 
-def orchestrator_create_switches_and_validate(config):
+def import_switches_from_csv(config):
     set_global_config(config)
     validated_csv_file_path = get_csv_path_and_validate_header(config)
     validated_switch_data = wrapper_read_csv_and_validate_switch_data(validated_csv_file_path)

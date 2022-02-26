@@ -33,8 +33,8 @@ class ToolConfiguration:
 
 
 def select_config_file(tool_name):
-    path_to_global_config_yml = Path.cwd() / "config/global_config.yml"
-    path_to_tool_config_yml = Path.cwd() / "config/tool_config.yml"
+    path_to_global_config_yml = Path.cwd() / "configuration/global_config.yml"
+    path_to_tool_config_yml = Path.cwd() / "configuration/tool_config.yml"
     if tool_name == "global":
         path_to_config_yml = path_to_global_config_yml
     else:

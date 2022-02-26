@@ -6,8 +6,8 @@ import signal
 from datetime import datetime
 from pathlib import Path
 from ssh_connection import wrapper_send_show_command_to_switches
-from load_config_files import wrapper_load_config
-from get_and_validate_switchlist_csv import orchestrator_create_switches_and_validate
+from inventory import import_switches_from_csv
+from config import wrapper_load_config
 
 logging.basicConfig(
     # filename='test.log',
@@ -31,7 +31,7 @@ def get_global_config():
 
 def fetch_switch_config():
     config = get_global_config()
-    switch_data = orchestrator_create_switches_and_validate(config)
+    switch_data = import_switches_from_csv(config)
 
     # TODO rewrite code to be more readable but less pythonic, quite sad :(
     # Filter out all switches that are not reachable
@@ -87,7 +87,7 @@ def display_text_for_prompt_to_select_output_file(filtered_file_list):
 
 
 def prompt_to_select_output_file(filtered_file_list):
-    file_path = "raw_output/interface_eth_config/"
+    file_path = "raw_output/interface_eth_config/"  # TODO use path from class ToolConfiguration
     user_input = input()
     if user_input == "" or user_input == "latest":
         output_file_path = file_path + filtered_file_list[-1]
@@ -214,3 +214,11 @@ signal.signal(signal.SIGINT, signal_handler)
 if is_main():
     check_all_prerequisites()
     menue()
+
+    # search_interface_eth:
+    # input_file: switchlist.csv
+    # output_needs_parse: True
+    # parse_pattern: ^ (interface. *)\n((?:.* \n) +?)!
+    # path_raw_output: raw_output / interface_eth_config   ERLEDIGT
+    # path_results: results / ERLEDIGT
+

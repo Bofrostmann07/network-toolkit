@@ -103,13 +103,41 @@ def check_if_csv_header_matches_template(header_csv, header_template):
     return is_header_valid
 
 
-def get_csv_path_and_validate_header(config, tool_config):
+def get_csv_path_and_validate_header(config):
+    # def get_csv_path_and_validate_header(config, tool_config): # TODO USE TOOL CONFIG
     set_global_config(config)
     path_to_csv = wrapper_validate_csv_path()
     check_if_csv_file_edited(path_to_csv)
     header_template = ['hostname', 'ip', 'os']  # TODO Template for tool 'Interface search'
     wrapper_check_csv_header(path_to_csv, header_template)
     return path_to_csv
+
+
+def validate_raw_csv_switch_data(raw_switch_data):
+    # RegEx Pattern for IPv4 address from https://stackoverflow.com/a/36760050
+    ip_re_pattern = re.compile(r"^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)(\.(?!$)|$)){4}$")
+    os_re_pattern = re.compile(r"\bcisco_xe\b|\bcisco_ios\b")
+    ip_faulty_counter = 0
+    os_faulty_counter = 0
+    for switch_element in raw_switch_data:
+        ip_valid_check = re.search(ip_re_pattern, switch_element.ip)
+        if ip_valid_check is None:
+            ip_faulty_counter += 1
+            logging.error(
+                f"Error IP: Line {switch_element.line_number}, {switch_element.hostname}. Faulty entry: {switch_element.ip}.")
+        os_valid_check = re.search(os_re_pattern, switch_element.os)
+        if os_valid_check is None:
+            os_faulty_counter += 1
+            logging.error(f"Error OS: Line {switch_element.line_number}, {switch_element.hostname}. Faulty entry: {switch_element.os}.")
+    if ip_faulty_counter >= 1 or os_faulty_counter >= 1:
+        logging.error(f"Validated {len(raw_switch_data)} lines. {ip_faulty_counter} lines have wrong IP and {os_faulty_counter} lines have wrong OS entries.")
+        print("Please change the faulty lines and validate the file again by pressing enter.")
+        input("[ENTER]")
+        raw_switch_data.clear()
+        return False
+    else:
+        logging.info(f"Validated {len(raw_switch_data)} lines. No lines are faulty. [3/5]")
+        return True
 
 
 def set_global_config(config):
