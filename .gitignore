@@ -56,4 +56,4 @@ ENV/
 .git
 raw_output/**/*.json
 results/*.json
-.~vsdx
+*.~vsdx
