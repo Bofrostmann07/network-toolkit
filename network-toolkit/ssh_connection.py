@@ -69,8 +69,10 @@ def run_show_command(switches, cli_show_command):
         stop_event, input_queue, output_queue = create_thread_pool(num_workers=global_config.number_of_worker_threads, bar=bar)
 
         for switch_element in switches:
-            input_queue.put((switch_element, cli_show_command))
-
+            if switch_element.reachable:
+                input_queue.put((switch_element, cli_show_command))
+            else:
+                logging.debug(f"Skipping {switch_element.hostname}: SSH unreachable")
         # Wait for the input queue to be emptied
         while not input_queue.empty():
             sleep(0.1)
@@ -80,16 +82,22 @@ def run_show_command(switches, cli_show_command):
         for w in worker_threads:
             w.join()
 
+    combined_cli_output = combine_cli_output(output_queue, switch_count=len(switches))
+    return combined_cli_output
+
+
+def combine_cli_output(output_queue, switch_count):
     # Wait for the output queue to be emptied
     combined_cli_output = {}
-    while not output_queue.empty() and len(switches) != len(combined_cli_output):
+
+    while not output_queue.empty() and switch_count != len(combined_cli_output):
         try:
             switch_element = output_queue.get(block=False)
         except Empty:
             pass
         else:
-            final_interface_eth_config = switch_element.config_to_dict()
-            combined_cli_output.update(final_interface_eth_config)
+            combined_cli_output[switch_element.ip] = switch_element.interface_eth_config
+
     return combined_cli_output
 
 
@@ -128,9 +136,8 @@ def worker(stop_event, input_queue, output_queue, bar):
         except Empty:
             continue
 
-        if switch_element.reachable:
-            raw_cli_output = fetch_switch_config(switch_element, command)
-            switch_element.parse_cli_output(raw_cli_output)
+        raw_cli_output = fetch_switch_config(switch_element, command)
+        switch_element.parse_interface_cli_output(raw_cli_output)
 
         output_queue.put(switch_element)
         bar()
