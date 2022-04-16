@@ -43,4 +43,4 @@ class NetworkSwitch:
             self.interface_eth_config[interface_name] = interface_config_list
 
     def parse_vlan_cli_output(self, raw_cli_output):
-        self.vlan_eth_config = self.parse_cli_output(r"...", raw_cli_output)
+        self.vlan_eth_config = self.parse_cli_output(r"^(\d+)\s+(\w+)", raw_cli_output)
