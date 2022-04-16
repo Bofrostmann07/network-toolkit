@@ -11,7 +11,7 @@ from threading import Event, Thread
 from queue import Queue, Empty
 from time import sleep
 from datetime import datetime
-
+from .config import GlobalConfiguration
 
 logging.getLogger("paramiko.transport").setLevel(logging.WARNING)
 logging.getLogger("netmiko").setLevel(logging.WARNING)
@@ -143,7 +143,7 @@ def worker(stop_event, input_queue, output_queue, bar):
         bar()
 
 
-def create_json_file(parsed_cli_output):
+def save_parsed_cli_output_as_json(parsed_cli_output):
     local_time = datetime.now()
     timestamp_url_safe = (local_time.strftime("%Y-%m-%dT%H-%M-%S"))
     file_path = "raw_output/interface_eth_config/" + timestamp_url_safe + ".json"
@@ -156,13 +156,13 @@ def create_json_file(parsed_cli_output):
     return
 
 
-def wrapper_send_show_command_to_switches(switch_data, cli_show_command, config):
+def wrapper_send_show_command_to_switches(switch_data, cli_show_command, g_config):
     global global_config
-    global_config = config
+    global_config = g_config
 
     cli_show_command = "show derived-config | begin interface"
     parsed_cli_output = run_show_command(switch_data, cli_show_command)
-    create_json_file(parsed_cli_output)
+    save_parsed_cli_output_as_json(parsed_cli_output)
     return parsed_cli_output
 
     # vlan_parsed = parse_output(platform="cisco_ios", command="show vlan", data=vlan_output)
