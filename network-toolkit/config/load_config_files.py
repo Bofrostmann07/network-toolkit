@@ -11,7 +11,7 @@ yaml.indent(mapping=2, sequence=4)
 
 
 @dataclass(frozen=True)
-class GeneralConfiguration:
+class GlobalConfiguration:
     ssh_username: str
     ssh_password: str
     path_to_csv_file: str
@@ -109,18 +109,18 @@ def select_class_to_create_config(tool_name, config_value):
 
 
 def create_global_config(config_value):
-    tool_config = GeneralConfiguration(config_value["ssh_username"],
-                                       config_value["ssh_password"],
-                                       config_value["path_to_csv_file"],
-                                       config_value["ssh_port"],
-                                       config_value["ssh_timeout"],
-                                       config_value["number_of_worker_threads"],
-                                       config_value["debug_mode"],
-                                       config_value["skip_ssh_reachability_check"],
-                                       config_value["skip_ssh_authentication_check"])
+    global_config = GlobalConfiguration(config_value["ssh_username"],
+                                        config_value["ssh_password"],
+                                        config_value["path_to_csv_file"],
+                                        config_value["ssh_port"],
+                                        config_value["ssh_timeout"],
+                                        config_value["number_of_worker_threads"],
+                                        config_value["debug_mode"],
+                                        config_value["skip_ssh_reachability_check"],
+                                        config_value["skip_ssh_authentication_check"])
     logging.debug("'global_config.yml' got successfully loaded and parsed.")
-    logging.debug(tool_config)
-    return tool_config
+    logging.debug(global_config)
+    return global_config
 
 
 def create_interface_eth_config(config_values):
