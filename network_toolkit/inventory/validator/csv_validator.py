@@ -67,6 +67,7 @@ def check_if_csv_file_edited(path_to_csv):
     return check_if_csv_file_edited(path_to_csv)
 
 def extract_csv_header(path_to_csv):
+    """Returns the csv headers of the given csv file"""
     with open(path_to_csv, mode="r", encoding="utf-8") as csv_file:
         raw_csv_data = csv.DictReader(csv_file)
         header = raw_csv_data.fieldnames
