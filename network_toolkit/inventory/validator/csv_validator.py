@@ -104,28 +104,30 @@ def get_csv_path_and_validate_header():
     return path_to_csv
 
 
-def validate_raw_csv_switch_data(raw_switch_data):
+def validate_switch_data(switch_data):
     # RegEx Pattern for IPv4 address from https://stackoverflow.com/a/36760050
     ip_re_pattern = re.compile(r"^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)(\.(?!$)|$)){4}$")
     os_re_pattern = re.compile(r"\bcisco_xe\b|\bcisco_ios\b")
     ip_faulty_counter = 0
     os_faulty_counter = 0
-    for switch_element in raw_switch_data:
-        ip_valid_check = re.search(ip_re_pattern, switch_element.ip)
-        if ip_valid_check is None:
+
+    for switch_element in switch_data:
+        if ip_re_pattern.search(switch_element.ip) is None:
             ip_faulty_counter += 1
-            logging.error(
-                f"Error IP: Line {switch_element.line_number}, {switch_element.hostname}. Faulty entry: {switch_element.ip}.")
-        os_valid_check = re.search(os_re_pattern, switch_element.os)
-        if os_valid_check is None:
+            logging.error(f"Error IP: Line {switch_element.line_number}, {switch_element.hostname}. Faulty entry: {switch_element.ip}.")
+            continue
+
+        if os_re_pattern.search(switch_element.os) is None:
             os_faulty_counter += 1
             logging.error(f"Error OS: Line {switch_element.line_number}, {switch_element.hostname}. Faulty entry: {switch_element.os}.")
-    if ip_faulty_counter >= 1 or os_faulty_counter >= 1:
-        logging.error(f"Validated {len(raw_switch_data)} lines. {ip_faulty_counter} lines have wrong IP and {os_faulty_counter} lines have wrong OS entries.")
+            continue
+
+    if ip_faulty_counter > 0 or os_faulty_counter > 0:
+        logging.error(f"Validated {len(switch_data)} lines. {ip_faulty_counter} lines have wrong IP and {os_faulty_counter} lines have wrong OS entries.")
         print("Please change the faulty lines and validate the file again by pressing enter.")
         input("[ENTER]")
-        raw_switch_data.clear()
+        switch_data.clear()
         return False
-    else:
-        logging.info(f"Validated {len(raw_switch_data)} lines. No lines are faulty. [3/5]")
-        return True
+
+    logging.info(f"Validated {len(switch_data)} lines. No lines are faulty. [3/5]")
+    return True
