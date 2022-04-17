@@ -81,10 +81,6 @@ def build_list_of_all_files(all_files):
     for file_name in all_files:
         if file_name.endswith(".json"):
             filtered_file_list.append(file_name)
-    if filtered_file_list:
-        return sorted(filtered_file_list)
-    if not filtered_file_list:
-        prompt_user_when_no_shrun_file_exist()
 
 
 def display_text_for_prompt_to_select_output_file(filtered_file_list):
