@@ -11,14 +11,14 @@ from .validator.connection_validator import check_ssh_connection
 from .network_switch import NetworkSwitch
 from .validator.csv_validator import get_csv_path_and_validate_header, validate_switch_data
 
-def wrapper_read_csv_and_validate_switch_data(csv_file_path):
-    while True:
-        raw_switch_data = import_csv_fill_class_networkswitch(csv_file_path)
-        is_data_valid = validate_raw_csv_switch_data(raw_switch_data)
-        if is_data_valid:
-            break
-    return raw_switch_data
 
+def read_and_validate_csv(csv_file_path):
+    while True:
+        switch_data = read_switch_data_from_csv(csv_file_path)
+        data_valid = validate_switch_data(switch_data)
+
+        if data_valid:
+            return switch_data
 
 def import_csv_fill_class_networkswitch(path_to_csv):
     switches_data = []
