@@ -97,6 +97,7 @@ def filter_json_files(all_files):
         if file_name.endswith(".json"):
             filtered_file_list.append(file_name)
 
+    return sorted(filtered_file_list)
 
 
 def prompt_to_select_output_file(filtered_file_list):
