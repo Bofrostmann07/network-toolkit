@@ -1,20 +1,11 @@
---- # User config - if you are happy with the default values, just leave them blank
-user_config:
-  ssh_username: automate
-  ssh_password: automateme
-  path_to_csv_file:
-  ssh_port:
-  ssh_timeout:
-  number_of_worker_threads:
-  debug_mode:
-  skip_ssh_reachability_check: True
-  skip_ssh_authentication_check: True
-
-default_config: # Default Config - don´t change any values here, edit the user config above
+--- # Global Config
+global_config:
+  ssh_username:
+  ssh_password:
   path_to_csv_file: switchlist.csv
   ssh_port: 22
   ssh_timeout: 2
-  number_of_worker_threads: 8
+  number_of_worker_threads: 15
   debug_mode: False
-  skip_ssh_reachability_check: False
+  skip_ssh_reachability_check: True
   skip_ssh_authentication_check: False
