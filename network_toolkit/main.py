@@ -55,7 +55,6 @@ def save_parsed_cli_output_as_json(parsed_cli_output):
 def search_command_user_input():
     # tool_name = "search_interface_eth"
     # tool_config = config.wrapper_load_config(tool_name)
-    display_text_for_prompt_to_select_output_file(filtered_file_list)
     all_files = fetch_interface_config_files()
     filtered_file_list = filter_json_files(all_files)
 
@@ -64,6 +63,10 @@ def search_command_user_input():
         switch_config = fetch_switch_config()
         config_path = save_parsed_cli_output_as_json(switch_config)
         filtered_file_list.append(config_path)
+
+    logging.info(f"Found {len(filtered_file_list)} 'show run' files. The latest is from {filtered_file_list[-1].strip('.json')}.")
+    print("To use the lastet file, press [enter]. To use another file, type the full filename.\n"
+          "To list all 'sh run' files, use 'dir' or 'ls'. To retrieve 'show run' now, use 'get'.")
 
     path_output_file = prompt_to_select_output_file(filtered_file_list)
 
@@ -94,11 +97,6 @@ def filter_json_files(all_files):
         if file_name.endswith(".json"):
             filtered_file_list.append(file_name)
 
-
-def display_text_for_prompt_to_select_output_file(filtered_file_list):
-    logging.info(f"Found {len(filtered_file_list)} 'show run' files. The latest is from {filtered_file_list[-1].strip('.json')}.")
-    print("To use the lastet file, press [enter]. To use another file, type the full filename.\n"
-          "To list all 'sh run' files, use 'dir' or 'ls'. To retrieve 'show run' now, use 'get'.")
 
 
 def prompt_to_select_output_file(filtered_file_list):
