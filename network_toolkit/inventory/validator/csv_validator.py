@@ -7,14 +7,9 @@ from pathlib import Path
 import network_toolkit.config as config
 
 
-def wrapper_validate_csv_path():
+def validate_csv_path(path_to_csv):
     logging.info("Starting to process and validate all prerequisites [0/5]")
-    while True:
-        path_to_csv = check_if_path_ending_with_file_extension(config.GLOBAL_CONFIG.path_to_csv_file)
-        is_csv_file_existing, path_to_csv = check_if_csv_file_existing(path_to_csv)
-        if is_csv_file_existing:
-            break
-    return path_to_csv
+    return ensure_csv_exists(path_to_csv)
 
 
 def ensure_file_extension(path_to_csv):
