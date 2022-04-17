@@ -24,22 +24,30 @@ def ensure_file_extension(path_to_csv):
 
     if valid_check is None:
         logging.debug("File extension is missing. Adding '.csv' to file path.")
-def check_if_csv_file_existing(path_to_csv):
-    try:
-        with open(path_to_csv):
-            logging.info(f"CSV file found @ {path_to_csv} [1/5]")
-            return True, path_to_csv
-    except FileNotFoundError:
-        logging.error(f"CSV file could not be found @ {path_to_csv}. Please enter absolute path.")
-        user_entered_path_to_csv = input("CSV Path: ")
-        return False, user_entered_path_to_csv
-    except PermissionError:
-        logging.error(f"No Permission to access {path_to_csv}. Grant permission or enter diffrent absolute path.")
-        print("Press [enter] to proceed after you granted permission.")
-        user_entered_path_to_csv = input("[ENTER]/CSV Path:")
-        return False, user_entered_path_to_csv
-    except Exception:
-        traceback.print_exc()
+        return path_to_csv + ".csv"
+
+    logging.debug("File extension exists.")
+    return path_to_csv
+
+
+def ensure_csv_exists(path_to_csv):
+    """Makes sure the csv file exists, asks the user to provide another file if it does not"""
+    while True:
+        try:
+            with open(path_to_csv):
+                logging.info(f"CSV file found @ {path_to_csv} [1/5]")
+                return path_to_csv
+        except FileNotFoundError:
+            logging.error(f"CSV file could not be found @ {path_to_csv}. Please enter absolute path.")
+            path_to_csv = input("CSV Path: ")
+            continue
+        except PermissionError:
+            logging.error(f"No Permission to access {path_to_csv}. Grant permission or enter diffrent absolute path.")
+            print("Press [enter] to proceed after you granted permission.")
+            path_to_csv = input("[ENTER]/CSV Path:")
+            continue
+        except Exception:
+            traceback.print_exc()
 
 
 def check_if_csv_file_edited(path_to_csv):
