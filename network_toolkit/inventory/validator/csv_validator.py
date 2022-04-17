@@ -80,18 +80,14 @@ def ensure_valid_csv_header(path_to_csv, header_template):
             logging.debug("CSV header is valid.")
             return
 
-def check_if_csv_header_matches_template(header_csv, header_template):
-    if header_csv != header_template:
-        is_header_valid = False
         logging.critical(f"CSV header is invalid.")
+
         print(f"Actual header: {header_csv}\n"
               f"Template header: {header_template}\n"
               f"Please correct header in line 1. If first entry looks weird, you need to convert csv to UTF-8 encoding. Press [enter] to recheck CSV file.")
         input("Press [enter] to recheck CSV file: ")
-    else:
-        is_header_valid = True
-        logging.debug("CSV header is valid.")
-    return is_header_valid
+
+
 
 
 def get_csv_path_and_validate_header():
