@@ -4,9 +4,9 @@ import socket
 from concurrent.futures import ThreadPoolExecutor
 
 from alive_progress import alive_bar
-from network_toolkit import fetch_switch_config
 
 import network_toolkit.config as config
+from network_toolkit.ssh_connection import run_command_on_switch
 
 
 def wrapper_check_for_ssh_reachability(validated_switch_data):
@@ -85,7 +85,7 @@ def check_ssh_authentication(switch_data):
     first_three_switches = switch_data[:2]
 
     for switch_element in first_three_switches:
-        raw_cli_output = fetch_switch_config(switch_element, "show privilege")
+        raw_cli_output = run_command_on_switch(switch_element, "show privilege")
         logging.debug(raw_cli_output)
         login_success_check = (priv_re_pattern.findall(raw_cli_output))
 
