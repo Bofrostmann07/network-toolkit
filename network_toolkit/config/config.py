@@ -1,9 +1,10 @@
 # -*- coding: UTF-8 -*-
-from ruamel.yaml import YAML
-from dataclasses import dataclass
-import logging
 import getpass
+import logging
+from dataclasses import dataclass
 from pathlib import Path
+
+from ruamel.yaml import YAML
 
 # Global variables
 yaml = YAML(typ='safe')

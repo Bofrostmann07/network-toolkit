@@ -1,14 +1,15 @@
 # -*- coding: UTF-8 -*-
-import logging
 import json
+import logging
 import os
 import signal
 from datetime import datetime
 from pathlib import Path
-from ssh_connection import wrapper_send_show_command_to_switches
-from inventory import import_switches_from_csv
-import network_toolkit.config as config
 
+import network_toolkit.config as config
+from inventory import import_switches_from_csv
+from inventory.validator.connection_validator import check_ssh_connection
+from ssh_connection import run_show_command
 
 logging.basicConfig(
     # filename='test.log',
@@ -17,7 +18,7 @@ logging.basicConfig(
     format="%(asctime)s %(levelname)s: %(message)s",
     datefmt="%Y-%m-%dT%H:%M:%SZ",
     level=logging.INFO
-)
+    )
 
 
 def is_main():
@@ -25,34 +26,59 @@ def is_main():
 
 
 def fetch_switch_config():
+    """Read config via ssh from switches defined in switchlist.csv"""
     switch_data = import_switches_from_csv()
+    switch_data = check_ssh_connection(switch_data)
 
     # TODO rewrite code to be more readable but less pythonic, quite sad :(
     # Filter out all switches that are not reachable
     reachable_switches = [x for x in switch_data if x.reachable]
-    parsed_config = wrapper_send_show_command_to_switches(reachable_switches, "show DUMMY")
+    parsed_config = run_show_command(reachable_switches, "show derived-config | begin interface")
     logging.info("Finished fetching switch config.")
-    # search_for_nac_enabled(parsed_config)
-    # cli_show_command = "show privilege"
-    # test = ssh_connect_only_one_show_command(switch_data, cli_show_command)
-    # print(test)
+    return parsed_config
+
+
+def save_parsed_cli_output_as_json(parsed_cli_output):
+    """Stores the parsed cli output as json file and returns name of the file"""
+    local_time = datetime.now()
+    timestamp_url_safe = local_time.strftime("%Y-%m-%dT%H-%M-%S")
+    file_path = "raw_output/interface_eth_config/" + timestamp_url_safe + ".json"
+    try:
+        with open(file_path, "x") as json_file:
+            json.dump(parsed_cli_output, json_file, indent=2)
+            logging.info(f"Created result file @ {file_path}")
+        return Path(file_path).name
+    except Exception:
+        logging.error("Could not create result file")
 
 
 def search_command_user_input():
-    # tool_name = "search_interface_eth"
-    # tool_config = config.wrapper_load_config(tool_name)
-    all_files = read_dir_and_get_file_names()
-    filtered_file_list = build_list_of_all_files(all_files)
-    display_text_for_prompt_to_select_output_file(filtered_file_list)
+    all_files = fetch_interface_config_files()
+    filtered_file_list = filter_json_files(all_files)
+
+    if not filtered_file_list:
+        logging.warning("Could not find a 'show run' file. Retrieving now!")
+        switch_config = fetch_switch_config()
+        config_path = save_parsed_cli_output_as_json(switch_config)
+        filtered_file_list.append(config_path)
+
+    logging.info(f"Found {len(filtered_file_list)} 'show run' files. The latest is from {filtered_file_list[-1].strip('.json')}.")
+    print("To use the lastet file, press [enter]. To use another file, type the full filename.\n"
+          "To list all 'sh run' files, use 'dir' or 'ls'. To retrieve 'show run' now, use 'get'.")
+
     path_output_file = prompt_to_select_output_file(filtered_file_list)
-    display_text_for_prompt_for_search_command()
+
+    print("You can use a 'negative search' to list all interfaces, which dont have the typed in command present, by appending '--n' at the end.\n"
+          "For example: 'switchport mode access --n' will list all interfaces, which arent access ports.")
+
     search_command, positive_search = prompt_for_search_command()
     output_file = open_selected_output_file(path_output_file)
     search_result = search_in_output_file(output_file, search_command, positive_search)
     write_search_result(search_result, path_output_file, search_command, positive_search)
 
 
-def read_dir_and_get_file_names():
+def fetch_interface_config_files():
+    """Reads local directory and returns list of all stored config files"""
     path_raw_output = Path.cwd() / 'raw_output/interface_eth_config'
     try:
         all_files = os.listdir(path_raw_output)
@@ -62,44 +88,38 @@ def read_dir_and_get_file_names():
         quit()
 
 
-def build_list_of_all_files(all_files):
+def filter_json_files(all_files):
+    """Filter out all files that don't end on .json"""
     filtered_file_list = []
     for file_name in all_files:
         if file_name.endswith(".json"):
             filtered_file_list.append(file_name)
-    if filtered_file_list:
-        return sorted(filtered_file_list)
-    if not filtered_file_list:
-        prompt_user_when_no_shrun_file_exist()
 
-
-def display_text_for_prompt_to_select_output_file(filtered_file_list):
-    logging.info(f"Found {len(filtered_file_list)} 'show run' files. The latest is from {filtered_file_list[-1].strip('.json')}.")
-    print("To use the lastet file, press [enter]. To use another file, type the full filename.\n"
-          "To list all 'sh run' files, use 'dir' or 'ls'. To retrieve 'show run' now, use 'get'.")
+    return sorted(filtered_file_list)
 
 
 def prompt_to_select_output_file(filtered_file_list):
     file_path = "raw_output/interface_eth_config/"  # TODO use path from class ToolConfiguration
-    user_input = input()
-    if user_input == "" or user_input == "latest":
-        output_file_path = file_path + filtered_file_list[-1]
-        absolute_file_path = Path.cwd() / output_file_path
-        logging.info(f"Using lastet file '{filtered_file_list[-1]}'")
-        return absolute_file_path
-    elif user_input in filtered_file_list:
-        output_file_path = file_path + user_input
-        absolute_file_path = Path.cwd() / output_file_path
-        logging.info(f"Using file '{user_input}'")
-        return absolute_file_path
-    elif user_input == "get":
-        fetch_switch_config()
-    elif user_input == "dir" or user_input == "ls":
-        print(filtered_file_list)
-        return prompt_to_select_output_file(filtered_file_list)
-    else:
-        logging.warning(f"{user_input} was not found in directory.")
-        return prompt_to_select_output_file(filtered_file_list)
+    while True:
+        user_input = input()
+        if user_input == "" or user_input == "latest":
+            output_file_path = file_path + filtered_file_list[-1]
+            absolute_file_path = Path.cwd() / output_file_path
+            logging.info(f"Using lastet file '{filtered_file_list[-1]}'")
+            return absolute_file_path
+        elif user_input in filtered_file_list:
+            output_file_path = file_path + user_input
+            absolute_file_path = Path.cwd() / output_file_path
+            logging.info(f"Using file '{user_input}'")
+            return absolute_file_path
+        elif user_input == "get":
+            switch_config = fetch_switch_config()
+            config_path = save_parsed_cli_output_as_json(switch_config)
+            return config_path
+        elif user_input == "dir" or user_input == "ls":
+            print(filtered_file_list)
+        else:
+            logging.warning(f"{user_input} was not found in directory.")
 
 
 def prompt_user_when_no_shrun_file_exist():
@@ -109,11 +129,6 @@ def prompt_user_when_no_shrun_file_exist():
         fetch_switch_config()
     else:
         print("\033[H\033[J", end="")  # Flush terminal
-
-
-def display_text_for_prompt_for_search_command():
-    print("You can use a 'negative search' to list all interfaces, which dont have the typed in command present, by appending '--n' at the end.\n"
-          "For example: 'switchport mode access --n' will list all interfaces, which arent access ports.")
 
 
 def prompt_for_search_command():
@@ -187,7 +202,6 @@ def menue():
 
 def check_all_prerequisites():
     config.GLOBAL_CONFIG = config.load_config()
-    return
 
 
 def signal_handler(sig, frame):
@@ -197,7 +211,6 @@ def signal_handler(sig, frame):
 
 
 signal.signal(signal.SIGINT, signal_handler)
-
 
 if is_main():
     check_all_prerequisites()
@@ -209,5 +222,3 @@ if is_main():
     # parse_pattern: ^ (interface. *)\n((?:.* \n) +?)!
     # path_raw_output: raw_output / interface_eth_config   ERLEDIGT
     # path_results: results / ERLEDIGT
-
-    # TODO __init__ vereinheitlichen
