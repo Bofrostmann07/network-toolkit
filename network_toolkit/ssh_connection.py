@@ -11,10 +11,11 @@ from netmiko import ConnectHandler
 from netmiko.ssh_exception import NetMikoTimeoutException, AuthenticationException
 from paramiko.ssh_exception import SSHException
 
+import network_toolkit.config as config
+
 logging.getLogger("paramiko.transport").setLevel(logging.WARNING)
 logging.getLogger("netmiko").setLevel(logging.WARNING)
 
-global_config = None
 
 def run_show_command(switches, cli_show_command):
     logging.info(f"Starting to execute '{cli_show_command}' on {len(switches)} switches...")
@@ -38,7 +39,7 @@ def fetch_switch_config(switch_element, command):
         'username': config.GLOBAL_CONFIG.ssh_username,
         'password': config.GLOBAL_CONFIG.ssh_password,
         'port': config.GLOBAL_CONFIG.ssh_port
-    }
+        }
 
     raw_cli_output = ""
     try:
