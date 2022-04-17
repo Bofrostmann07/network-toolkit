@@ -1,12 +1,6 @@
 # -*- coding: UTF-8 -*-
 import csv
 import logging
-from threading import Event, Thread
-from queue import Queue, Empty
-from time import sleep
-from alive_progress import alive_bar
-# from ssh_connection import ssh_connect_only_one_show_command_singlethreaded # TODO wieder aktivieren
-from .validator.connection_validator import check_ssh_connection
 
 from .network_switch import NetworkSwitch
 from .validator.csv_validator import get_csv_path_and_validate_header, validate_switch_data

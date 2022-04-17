@@ -1,5 +1,4 @@
 import json
-from ntc_templates.parse import parse_output
 import logging
 import traceback
 from concurrent.futures import ThreadPoolExecutor
