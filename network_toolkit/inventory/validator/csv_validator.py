@@ -96,7 +96,7 @@ def check_if_csv_header_matches_template(header_csv, header_template):
 
 
 def get_csv_path_and_validate_header():
-    path_to_csv = wrapper_validate_csv_path()
+    path_to_csv = validate_csv_path(path_to_csv)
     check_if_csv_file_edited(path_to_csv)
     header_template = ['hostname', 'ip', 'os']  # TODO Template for tool 'Interface search'
     ensure_valid_csv_header(path_to_csv, header_template)
