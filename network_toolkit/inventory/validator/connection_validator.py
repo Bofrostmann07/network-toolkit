@@ -6,10 +6,10 @@ from queue import Queue, Empty
 from time import sleep
 from alive_progress import alive_bar
 from network_toolkit import fetch_switch_config
-import network_toolkit.config as config
 
 # Global variables
 worker_threads = []
+import network_toolkit.config as config
 
 
 def wrapper_check_for_ssh_reachability(validated_switch_data):

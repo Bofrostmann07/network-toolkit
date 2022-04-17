@@ -34,9 +34,8 @@ def import_csv_fill_class_networkswitch(path_to_csv):
     return switches_data
 
 
-def import_switches_from_csv(config):
+def import_switches_from_csv():
     """Read data from csv file and validate its contents"""
-    validated_csv_file_path = get_csv_path_and_validate_header(config)
-    validated_switch_data = wrapper_read_csv_and_validate_switch_data(validated_csv_file_path)
-    # reachable_switch_data = check_ssh_connection(validated_switch_data)
+    validated_csv_file_path = get_csv_path_and_validate_header()
+    validated_switch_data = read_and_validate_csv(validated_csv_file_path)
     return validated_switch_data
