@@ -100,27 +100,26 @@ def filter_json_files(all_files):
 
 def prompt_to_select_output_file(filtered_file_list):
     file_path = "raw_output/interface_eth_config/"  # TODO use path from class ToolConfiguration
-    user_input = input()
-    if user_input == "" or user_input == "latest":
-        output_file_path = file_path + filtered_file_list[-1]
-        absolute_file_path = Path.cwd() / output_file_path
-        logging.info(f"Using lastet file '{filtered_file_list[-1]}'")
-        return absolute_file_path
-    elif user_input in filtered_file_list:
-        output_file_path = file_path + user_input
-        absolute_file_path = Path.cwd() / output_file_path
-        logging.info(f"Using file '{user_input}'")
-        return absolute_file_path
-    elif user_input == "get":
-        switch_config = fetch_switch_config()
-        config_path = save_parsed_cli_output_as_json(switch_config)
-        return config_path
-    elif user_input == "dir" or user_input == "ls":
-        print(filtered_file_list)
-        return prompt_to_select_output_file(filtered_file_list)
-    else:
-        logging.warning(f"{user_input} was not found in directory.")
-        return prompt_to_select_output_file(filtered_file_list)
+    while True:
+        user_input = input()
+        if user_input == "" or user_input == "latest":
+            output_file_path = file_path + filtered_file_list[-1]
+            absolute_file_path = Path.cwd() / output_file_path
+            logging.info(f"Using lastet file '{filtered_file_list[-1]}'")
+            return absolute_file_path
+        elif user_input in filtered_file_list:
+            output_file_path = file_path + user_input
+            absolute_file_path = Path.cwd() / output_file_path
+            logging.info(f"Using file '{user_input}'")
+            return absolute_file_path
+        elif user_input == "get":
+            switch_config = fetch_switch_config()
+            config_path = save_parsed_cli_output_as_json(switch_config)
+            return config_path
+        elif user_input == "dir" or user_input == "ls":
+            print(filtered_file_list)
+        else:
+            logging.warning(f"{user_input} was not found in directory.")
 
 
 def prompt_user_when_no_shrun_file_exist():
