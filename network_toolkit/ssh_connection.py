@@ -1,8 +1,6 @@
-import json
 import logging
 import traceback
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime
 
 from alive_progress import alive_bar
 from netmiko import ConnectHandler
@@ -62,19 +60,6 @@ def worker(switch_element, command):
     raw_cli_output = run_command_on_switch(switch_element, command)
     switch_element.parse_interface_cli_output(raw_cli_output)
     return switch_element
-
-
-def save_parsed_cli_output_as_json(parsed_cli_output):
-    local_time = datetime.now()
-    timestamp_url_safe = (local_time.strftime("%Y-%m-%dT%H-%M-%S"))
-    file_path = "raw_output/interface_eth_config/" + timestamp_url_safe + ".json"
-    try:
-        with open(file_path, "x") as json_file:
-            json.dump(parsed_cli_output, json_file, indent=2)
-            logging.info(f"Created result file @ {file_path}")
-    except Exception:
-        logging.error("Could not create result file")
-    return
 
 
 def wrapper_send_show_command_to_switches(switch_data, cli_show_command):

@@ -38,6 +38,18 @@ def fetch_switch_config():
     # cli_show_command = "show privilege"
     # test = ssh_connect_only_one_show_command(switch_data, cli_show_command)
     # print(test)
+def save_parsed_cli_output_as_json(parsed_cli_output):
+    """Stores the parsed cli output as json file and returns path"""
+    local_time = datetime.now()
+    timestamp_url_safe = local_time.strftime("%Y-%m-%dT%H-%M-%S")
+    file_path = "raw_output/interface_eth_config/" + timestamp_url_safe + ".json"
+    try:
+        with open(file_path, "x") as json_file:
+            json.dump(parsed_cli_output, json_file, indent=2)
+            logging.info(f"Created result file @ {file_path}")
+        return file_path
+    except Exception:
+        logging.error("Could not create result file")
 
 
 def search_command_user_input():
