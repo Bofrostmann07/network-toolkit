@@ -84,6 +84,21 @@ def load_config():
     return config
 def load_config(tool_name):
     """Load the config file for the given tool_name"""
+    path_to_global_config_yml = Path.cwd() / "configuration/global_config.yml"
+    path_to_tool_config_yml = Path.cwd() / "configuration/tool_config.yml"
+
+    if tool_name == "global":
+        config_file_path = path_to_global_config_yml
+    else:
+        config_file_path = path_to_tool_config_yml
+
+    try:
+        config_list = read_config_file(config_file_path, tool_name)
+        config = select_class_to_create_config(tool_name, config_list)
+        return config
+    except IOError:
+        logging.error(f"Config File not found/accessible @ {config_file_path}")
+        quit()
 
 
 GLOBAL_CONFIG = None
