@@ -82,6 +82,8 @@ def load_config():
 
     config = _create_global_config(config_list)
     return config
+def load_config(tool_name):
+    """Load the config file for the given tool_name"""
 
 
 GLOBAL_CONFIG = None
