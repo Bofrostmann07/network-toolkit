@@ -55,9 +55,9 @@ def save_parsed_cli_output_as_json(parsed_cli_output):
 def search_command_user_input():
     # tool_name = "search_interface_eth"
     # tool_config = config.wrapper_load_config(tool_name)
-    filtered_file_list = build_list_of_all_files(all_files)
     display_text_for_prompt_to_select_output_file(filtered_file_list)
     all_files = fetch_interface_config_files()
+    filtered_file_list = filter_json_files(all_files)
     path_output_file = prompt_to_select_output_file(filtered_file_list)
 
     print("You can use a 'negative search' to list all interfaces, which dont have the typed in command present, by appending '--n' at the end.\n"
@@ -80,7 +80,8 @@ def fetch_interface_config_files():
         quit()
 
 
-def build_list_of_all_files(all_files):
+def filter_json_files(all_files):
+    """Filter out all files that don't end on .json"""
     filtered_file_list = []
     for file_name in all_files:
         if file_name.endswith(".json"):
