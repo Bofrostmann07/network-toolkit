@@ -114,7 +114,9 @@ def prompt_to_select_output_file(filtered_file_list):
         logging.info(f"Using file '{user_input}'")
         return absolute_file_path
     elif user_input == "get":
-        fetch_switch_config()
+        switch_config = fetch_switch_config()
+        config_path = save_parsed_cli_output_as_json(switch_config)
+        return config_path
     elif user_input == "dir" or user_input == "ls":
         print(filtered_file_list)
         return prompt_to_select_output_file(filtered_file_list)
