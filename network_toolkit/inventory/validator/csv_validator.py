@@ -65,12 +65,6 @@ def check_if_csv_file_edited(path_to_csv):
             return check_if_csv_file_edited(path_to_csv)
 
 
-def wrapper_check_csv_header(path_to_csv, header_template):
-    while True:
-        header_csv = extract_csv_header(path_to_csv)
-        is_header_valid = check_if_csv_header_matches_template(header_csv, header_template)
-        if is_header_valid:
-            break
 
 
 def extract_csv_header(path_to_csv):
@@ -79,6 +73,13 @@ def extract_csv_header(path_to_csv):
         header = raw_csv_data.fieldnames
         return header
 
+def ensure_valid_csv_header(path_to_csv, header_template):
+    """Blocks until the user fixed any issue with the csv headers"""
+    while True:
+        header_csv = extract_csv_header(path_to_csv)
+        if header_csv == header_template:
+            logging.debug("CSV header is valid.")
+            return
 
 def check_if_csv_header_matches_template(header_csv, header_template):
     if header_csv != header_template:
@@ -98,7 +99,7 @@ def get_csv_path_and_validate_header():
     path_to_csv = wrapper_validate_csv_path()
     check_if_csv_file_edited(path_to_csv)
     header_template = ['hostname', 'ip', 'os']  # TODO Template for tool 'Interface search'
-    wrapper_check_csv_header(path_to_csv, header_template)
+    ensure_valid_csv_header(path_to_csv, header_template)
     return path_to_csv
 
 
