@@ -53,8 +53,6 @@ def save_parsed_cli_output_as_json(parsed_cli_output):
 
 
 def search_command_user_input():
-    # tool_name = "search_interface_eth"
-    # tool_config = config.wrapper_load_config(tool_name)
     all_files = fetch_interface_config_files()
     filtered_file_list = filter_json_files(all_files)
 
