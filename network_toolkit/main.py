@@ -59,7 +59,10 @@ def search_command_user_input():
     filtered_file_list = build_list_of_all_files(all_files)
     display_text_for_prompt_to_select_output_file(filtered_file_list)
     path_output_file = prompt_to_select_output_file(filtered_file_list)
-    display_text_for_prompt_for_search_command()
+
+    print("You can use a 'negative search' to list all interfaces, which dont have the typed in command present, by appending '--n' at the end.\n"
+          "For example: 'switchport mode access --n' will list all interfaces, which arent access ports.")
+
     search_command, positive_search = prompt_for_search_command()
     output_file = open_selected_output_file(path_output_file)
     search_result = search_in_output_file(output_file, search_command, positive_search)
@@ -119,11 +122,6 @@ def prompt_user_when_no_shrun_file_exist():
         fetch_switch_config()
     else:
         print("\033[H\033[J", end="")  # Flush terminal
-
-
-def display_text_for_prompt_for_search_command():
-    print("You can use a 'negative search' to list all interfaces, which dont have the typed in command present, by appending '--n' at the end.\n"
-          "For example: 'switchport mode access --n' will list all interfaces, which arent access ports.")
 
 
 def prompt_for_search_command():
