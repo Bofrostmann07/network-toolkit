@@ -17,18 +17,13 @@ def wrapper_validate_csv_path():
     return path_to_csv
 
 
-def check_if_path_ending_with_file_extension(path_to_csv):
+def ensure_file_extension(path_to_csv):
+    """Checks if path contains a file extension, adds it if it does not"""
     file_extension_re_pattern = re.compile(r"^.*\.csv$")
-    valid_check = re.search(file_extension_re_pattern, path_to_csv)
+    valid_check = file_extension_re_pattern.search(path_to_csv)
+
     if valid_check is None:
-        edited_path_to_csv = path_to_csv + ".csv"
         logging.debug("File extension is missing. Adding '.csv' to file path.")
-        return edited_path_to_csv
-    else:
-        logging.debug("File extension exists.")
-        return path_to_csv
-
-
 def check_if_csv_file_existing(path_to_csv):
     try:
         with open(path_to_csv):
