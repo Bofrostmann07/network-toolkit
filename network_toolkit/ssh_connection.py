@@ -60,13 +60,3 @@ def worker(switch_element, command):
     raw_cli_output = run_command_on_switch(switch_element, command)
     switch_element.parse_interface_cli_output(raw_cli_output)
     return switch_element
-
-
-def wrapper_send_show_command_to_switches(switch_data, cli_show_command):
-    cli_show_command = "show derived-config | begin interface"
-    parsed_cli_output = run_show_command(switch_data, cli_show_command)
-    save_parsed_cli_output_as_json(parsed_cli_output)
-    return parsed_cli_output
-
-    # vlan_parsed = parse_output(platform="cisco_ios", command="show vlan", data=vlan_output)
-    # json_vlan_parsed = (json.dumps(vlan_parsed))
