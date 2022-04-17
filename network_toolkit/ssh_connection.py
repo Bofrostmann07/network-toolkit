@@ -1,18 +1,17 @@
 import json
-from netmiko import ConnectHandler
-from netmiko.ssh_exception import NetMikoTimeoutException
-from paramiko.ssh_exception import SSHException
-from netmiko.ssh_exception import AuthenticationException
 from ntc_templates.parse import parse_output
 import logging
 import traceback
-from alive_progress import alive_bar
 from threading import Event, Thread
 from queue import Queue, Empty
 from time import sleep
 from datetime import datetime
 import network_toolkit.config as config
 
+from alive_progress import alive_bar
+from netmiko import ConnectHandler
+from netmiko.ssh_exception import NetMikoTimeoutException, AuthenticationException
+from paramiko.ssh_exception import SSHException
 
 logging.getLogger("paramiko.transport").setLevel(logging.WARNING)
 logging.getLogger("netmiko").setLevel(logging.WARNING)
