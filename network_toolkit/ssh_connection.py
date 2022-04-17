@@ -2,9 +2,7 @@ import json
 from ntc_templates.parse import parse_output
 import logging
 import traceback
-from threading import Event, Thread
-from queue import Queue, Empty
-from time import sleep
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 import network_toolkit.config as config
 
@@ -16,55 +14,19 @@ from paramiko.ssh_exception import SSHException
 logging.getLogger("paramiko.transport").setLevel(logging.WARNING)
 logging.getLogger("netmiko").setLevel(logging.WARNING)
 
-worker_threads = []
-
-
-def create_thread_pool(num_workers, bar):
-    stop_event = Event()
-    input_queue = Queue()
-    output_queue = Queue()
-    for _ in range(num_workers):
-        w = Thread(target=worker, args=(stop_event, input_queue, output_queue, bar))
-        w.daemon = True
-        w.start()
-        worker_threads.append(w)
-    return stop_event, input_queue, output_queue
-
+global_config = None
 
 def run_show_command(switches, cli_show_command):
     logging.info(f"Starting to execute '{cli_show_command}' on {len(switches)} switches...")
-    with alive_bar(total=len(switches)) as bar:
-        stop_event, input_queue, output_queue = create_thread_pool(num_workers=config.GLOBAL_CONFIG.number_of_worker_threads, bar=bar)
-
-        for switch_element in switches:
-            if switch_element.reachable:
-                input_queue.put((switch_element, cli_show_command))
-            else:
-                logging.debug(f"Skipping {switch_element.hostname}: SSH unreachable")
-        # Wait for the input queue to be emptied
-        while not input_queue.empty():
-            sleep(0.1)
-        # Stop workers from taking from the input queue
-        stop_event.set()
-        # Wait until all worker threads are done
-        for w in worker_threads:
-            w.join()
-
-    combined_cli_output = combine_cli_output(output_queue, switch_count=len(switches))
-    return combined_cli_output
-
-
-def combine_cli_output(output_queue, switch_count):
-    # Wait for the output queue to be emptied
     combined_cli_output = {}
 
-    while not output_queue.empty() and switch_count != len(combined_cli_output):
-        try:
-            switch_element = output_queue.get(block=False)
-        except Empty:
-            pass
-        else:
-            combined_cli_output[switch_element.ip] = switch_element.interface_eth_config
+    with alive_bar(total=len(switches)) as bar:
+        with ThreadPoolExecutor(max_workers=config.GLOBAL_CONFIG.number_of_worker_threads) as executor:
+            futures = [executor.submit(worker, switch_element, cli_show_command) for switch_element in switches]
+            for future in futures:
+                switch_element = future.result()
+                combined_cli_output[switch_element.ip] = switch_element.interface_eth_config
+                bar()
 
     return combined_cli_output
 
@@ -95,19 +57,10 @@ def fetch_switch_config(switch_element, command):
     return raw_cli_output
 
 
-# Worker thread for fetching ssh config from switch
-def worker(stop_event, input_queue, output_queue, bar):
-    while not (stop_event.is_set() and input_queue.empty()):
-        try:
-            switch_element, command = input_queue.get(block=True, timeout=1)
-        except Empty:
-            continue
-
-        raw_cli_output = fetch_switch_config(switch_element, command)
-        switch_element.parse_interface_cli_output(raw_cli_output)
-
-        output_queue.put(switch_element)
-        bar()
+def worker(switch_element, command):
+    raw_cli_output = run_command_on_switch(switch_element, command)
+    switch_element.parse_interface_cli_output(raw_cli_output)
+    return switch_element
 
 
 def save_parsed_cli_output_as_json(parsed_cli_output):
