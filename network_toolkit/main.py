@@ -55,9 +55,9 @@ def save_parsed_cli_output_as_json(parsed_cli_output):
 def search_command_user_input():
     # tool_name = "search_interface_eth"
     # tool_config = config.wrapper_load_config(tool_name)
-    all_files = read_dir_and_get_file_names()
     filtered_file_list = build_list_of_all_files(all_files)
     display_text_for_prompt_to_select_output_file(filtered_file_list)
+    all_files = fetch_interface_config_files()
     path_output_file = prompt_to_select_output_file(filtered_file_list)
 
     print("You can use a 'negative search' to list all interfaces, which dont have the typed in command present, by appending '--n' at the end.\n"
@@ -69,7 +69,8 @@ def search_command_user_input():
     write_search_result(search_result, path_output_file, search_command, positive_search)
 
 
-def read_dir_and_get_file_names():
+def fetch_interface_config_files():
+    """Reads local directory and returns list of all stored config files"""
     path_raw_output = Path.cwd() / 'raw_output/interface_eth_config'
     try:
         all_files = os.listdir(path_raw_output)
