@@ -4,20 +4,13 @@ import csv
 import re
 import traceback
 from pathlib import Path
-
-# Global variables
-global_config = {}
-
-
-def get_global_config():
-    config = global_config
-    return config
+import network_toolkit.config as config
 
 
 def wrapper_validate_csv_path():
     logging.info("Starting to process and validate all prerequisites [0/5]")
     while True:
-        path_to_csv = check_if_path_ending_with_file_extension(global_config.path_to_csv_file)
+        path_to_csv = check_if_path_ending_with_file_extension(config.GLOBAL_CONFIG.path_to_csv_file)
         is_csv_file_existing, path_to_csv = check_if_csv_file_existing(path_to_csv)
         if is_csv_file_existing:
             break
@@ -103,9 +96,7 @@ def check_if_csv_header_matches_template(header_csv, header_template):
     return is_header_valid
 
 
-def get_csv_path_and_validate_header(config):
-    # def get_csv_path_and_validate_header(config, tool_config): # TODO USE TOOL CONFIG
-    set_global_config(config)
+def get_csv_path_and_validate_header():
     path_to_csv = wrapper_validate_csv_path()
     check_if_csv_file_edited(path_to_csv)
     header_template = ['hostname', 'ip', 'os']  # TODO Template for tool 'Interface search'
@@ -138,9 +129,3 @@ def validate_raw_csv_switch_data(raw_switch_data):
     else:
         logging.info(f"Validated {len(raw_switch_data)} lines. No lines are faulty. [3/5]")
         return True
-
-
-def set_global_config(config):
-    global global_config
-    global_config = config
-    return

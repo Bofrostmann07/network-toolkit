@@ -1,3 +1,3 @@
-from .config import wrapper_load_config, GLOBAL_CONFIG
+from .config import load_config, GLOBAL_CONFIG
 
-__all__ = ["wrapper_load_config", "GLOBAL_CONFIG"]
+__all__ = ["load_config", "GLOBAL_CONFIG"]

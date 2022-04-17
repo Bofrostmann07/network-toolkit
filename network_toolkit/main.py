@@ -18,26 +18,19 @@ logging.basicConfig(
     datefmt="%Y-%m-%dT%H:%M:%SZ",
     level=logging.INFO
 )
-global_config = {}
 
 
 def is_main():
     return __name__ == "__main__"
 
 
-def get_global_config():
-    config = global_config
-    return config
-
-
 def fetch_switch_config():
-    config = get_global_config()
-    switch_data = import_switches_from_csv(config)
+    switch_data = import_switches_from_csv()
 
     # TODO rewrite code to be more readable but less pythonic, quite sad :(
     # Filter out all switches that are not reachable
     reachable_switches = [x for x in switch_data if x.reachable]
-    parsed_config = wrapper_send_show_command_to_switches(reachable_switches, "show DUMMY", config)
+    parsed_config = wrapper_send_show_command_to_switches(reachable_switches, "show DUMMY")
     logging.info("Finished fetching switch config.")
     # search_for_nac_enabled(parsed_config)
     # cli_show_command = "show privilege"
@@ -46,10 +39,9 @@ def fetch_switch_config():
 
 
 def search_command_user_input():
-    tool_name = "search_interface_eth"
-    tool_config = config.wrapper_load_config(tool_name)
-    config.GLOBAL_CONFIG = tool_config
-    all_files = read_dir_and_get_file_names(tool_config)
+    # tool_name = "search_interface_eth"
+    # tool_config = config.wrapper_load_config(tool_name)
+    all_files = read_dir_and_get_file_names()
     filtered_file_list = build_list_of_all_files(all_files)
     display_text_for_prompt_to_select_output_file(filtered_file_list)
     path_output_file = prompt_to_select_output_file(filtered_file_list)
@@ -57,15 +49,16 @@ def search_command_user_input():
     search_command, positive_search = prompt_for_search_command()
     output_file = open_selected_output_file(path_output_file)
     search_result = search_in_output_file(output_file, search_command, positive_search)
-    write_search_result(search_result, path_output_file, search_command, positive_search, tool_config)
+    write_search_result(search_result, path_output_file, search_command, positive_search)
 
 
-def read_dir_and_get_file_names(tool_config):
+def read_dir_and_get_file_names():
+    path_raw_output = Path.cwd() / 'raw_output/interface_eth_config'
     try:
-        all_files = os.listdir(tool_config.path_raw_output)
+        all_files = os.listdir(path_raw_output)
         return all_files
     except FileNotFoundError:
-        logging.error(f"Could not found {tool_config.path_raw_output}")
+        logging.error(f"Could not found {path_raw_output}")
         quit()
 
 
@@ -149,17 +142,18 @@ def search_in_output_file(output_file, search_command, positive_search):
     search_result = {}
     for switch_ip, switch_config in output_file.items():
         interface_list = []
-        for interface, config in switch_config.items():
-            if interface.startswith("interface") and (search_command in config) == positive_search:
+        for interface, int_config in switch_config.items():
+            if interface.startswith("interface") and (search_command in int_config) == positive_search:
                 interface_list.append(interface)
         search_result[switch_ip] = interface_list
     return search_result
 
 
-def write_search_result(search_result, path_output_file, search_command, positive_search, tool_config):
+def write_search_result(search_result, path_output_file, search_command, positive_search):
+    path_results = 'results/'
     local_time = datetime.now()
     timestamp_url_safe = (local_time.strftime("%Y-%m-%dT%H-%M-%S"))
-    file_path = tool_config.path_results + timestamp_url_safe + ".json"
+    file_path = path_results + timestamp_url_safe + ".json"
     with open(file_path, "x") as json_file:
         json_file.write(f"This result is based on data @ {path_output_file}.\n"
                         f"Search command: '{search_command}'. Positive Search: {positive_search}\n\n")
@@ -185,16 +179,14 @@ def menue():
         elif tool_number == "3":
             print("Tool will soon be available.")
         elif tool_number == "99":
-            print(global_config)
+            print(config.GLOBAL_CONFIG)
         else:
             print(tool_number)
             print("Invalid input. You need to enter the number of the tool.")
 
 
 def check_all_prerequisites():
-    global global_config
-    tool_name = "global"
-    global_config = config.wrapper_load_config(tool_name)
+    config.GLOBAL_CONFIG = config.load_config()
     return
 
 

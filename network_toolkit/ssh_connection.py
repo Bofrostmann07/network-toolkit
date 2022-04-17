@@ -11,12 +11,12 @@ from threading import Event, Thread
 from queue import Queue, Empty
 from time import sleep
 from datetime import datetime
+import network_toolkit.config as config
 
 
 logging.getLogger("paramiko.transport").setLevel(logging.WARNING)
 logging.getLogger("netmiko").setLevel(logging.WARNING)
 
-global_config = None
 worker_threads = []
 
 
@@ -35,7 +35,7 @@ def create_thread_pool(num_workers, bar):
 def run_show_command(switches, cli_show_command):
     logging.info(f"Starting to execute '{cli_show_command}' on {len(switches)} switches...")
     with alive_bar(total=len(switches)) as bar:
-        stop_event, input_queue, output_queue = create_thread_pool(num_workers=global_config.number_of_worker_threads, bar=bar)
+        stop_event, input_queue, output_queue = create_thread_pool(num_workers=config.GLOBAL_CONFIG.number_of_worker_threads, bar=bar)
 
         for switch_element in switches:
             if switch_element.reachable:
@@ -71,13 +71,12 @@ def combine_cli_output(output_queue, switch_count):
 
 
 def fetch_switch_config(switch_element, command):
-    global global_config
     ssh_parameter = {
         'device_type': switch_element.os,
         'host': switch_element.ip,
-        'username': global_config.ssh_username,
-        'password': global_config.ssh_password,
-        'port': global_config.ssh_port
+        'username': config.GLOBAL_CONFIG.ssh_username,
+        'password': config.GLOBAL_CONFIG.ssh_password,
+        'port': config.GLOBAL_CONFIG.ssh_port
     }
 
     raw_cli_output = ""
@@ -125,10 +124,7 @@ def save_parsed_cli_output_as_json(parsed_cli_output):
     return
 
 
-def wrapper_send_show_command_to_switches(switch_data, cli_show_command, g_config):
-    global global_config
-    global_config = g_config
-
+def wrapper_send_show_command_to_switches(switch_data, cli_show_command):
     cli_show_command = "show derived-config | begin interface"
     parsed_cli_output = run_show_command(switch_data, cli_show_command)
     save_parsed_cli_output_as_json(parsed_cli_output)

@@ -23,92 +23,41 @@ class GlobalConfiguration:
     skip_ssh_authentication_check: bool
 
 
-@dataclass(frozen=True)
-class ToolConfiguration:
-    input_file: str
-    output_needs_parse: bool
-    parse_pattern: str
-    path_raw_output: str
-    path_results: str
+def _open_and_read_config_file():
+    path_to_config_yml = Path.cwd() / "configuration/global_config.yml"
 
-
-def select_config_file(tool_name):
-    path_to_global_config_yml = Path.cwd() / "configuration/global_config.yml"
-    path_to_tool_config_yml = Path.cwd() / "configuration/tool_config.yml"
-    if tool_name == "global":
-        path_to_config_yml = path_to_global_config_yml
-    else:
-        path_to_config_yml = path_to_tool_config_yml
-    return path_to_config_yml
-
-
-def check_if_config_yml_exists(path_to_config):
-    try:
-        with open(path_to_config, mode="r", encoding="utf-8"):
-            logging.debug("Config File found.")
-    except IOError:
-        logging.error(f"Config File not found/accessible @ {path_to_config}")
-        quit()
-
-
-def open_and_read_config_file(path_to_config, tool_name):
-    with open(path_to_config) as config_yml:
+    with open(path_to_config_yml, mode="r", encoding="utf-8") as config_yml:
         config_file = (yaml.load(config_yml))
-    if tool_name == "global":
-        config_data = build_global_config(config_file)
-    else:
-        config_data = config_file[tool_name]
-    return config_data
+
+    global_config = config_file["global_config"]
+    global_config = _check_if_username_is_set_in_config_file(global_config)
+    global_config = _check_if_password_is_set_in_config_file(global_config)
+    return global_config
 
 
-def build_global_config(config_file):
-    user_config = config_file["user_config"]
-    default_config = config_file["default_config"]
-    user_config = check_if_username_is_set_in_config_file(user_config)
-    user_config = check_if_password_is_set_in_config_file(user_config)
-    combined_config = combine_user_config_and_default_config(user_config, default_config)
-    return combined_config
-
-
-def check_if_username_is_set_in_config_file(user_config):
-    if user_config["ssh_username"] is None:
+def _check_if_username_is_set_in_config_file(global_config):
+    if global_config["ssh_username"] is None:
         logging.error("No username is set. Edit 'global_config.yml' or enter it now.")
         username = input("Username: ")
         while username == "":
             logging.error("Username cant be empty.")
             username = input("Username: ")
-        user_config["ssh_username"] = username
-    return user_config
+        global_config["ssh_username"] = username
+    return global_config
 
 
-def check_if_password_is_set_in_config_file(user_config):
-    if user_config["ssh_password"] is None:
+def _check_if_password_is_set_in_config_file(global_config):
+    if global_config["ssh_password"] is None:
         logging.error("No password is set. Edit 'global_config.yml' or enter it now.")
         password = getpass.getpass("Password: ")
         while password == "":
             logging.error("Password cant be empty.")
             password = getpass.getpass("Password: ")
-        user_config["ssh_password"] = password
-    return user_config
+        global_config["ssh_password"] = password
+    return global_config
 
 
-def combine_user_config_and_default_config(user_config, default_config):
-    combined_config = default_config
-    for key, value in user_config.items():
-        if value is not None:
-            combined_config[key] = value
-    return combined_config
-
-
-def select_class_to_create_config(tool_name, config_value):
-    if tool_name == "global":
-        config_obj = create_global_config(config_value)
-    else:
-        config_obj = create_interface_eth_config(config_value)
-    return config_obj
-
-
-def create_global_config(config_value):
+def _create_global_config(config_value):
     global_config = GlobalConfiguration(config_value["ssh_username"],
                                         config_value["ssh_password"],
                                         config_value["path_to_csv_file"],
@@ -123,22 +72,14 @@ def create_global_config(config_value):
     return global_config
 
 
-def create_interface_eth_config(config_values):
-    tool_config = ToolConfiguration(config_values["input_file"],
-                                    config_values["output_needs_parse"],
-                                    config_values["parse_pattern"],
-                                    config_values["path_raw_output"],
-                                    config_values["path_results"])
-    logging.debug("'tool_config.yml' got successfully loaded and parsed.")
-    logging.debug(tool_config)
-    return tool_config
+def load_config():
+    try:
+        config_list = _open_and_read_config_file()
+    except IOError:
+        logging.error(f"Config File not found/accessible @ {Path.cwd() / 'configuration/global_config.yml'}")
+        quit()
 
-
-def wrapper_load_config(tool_name):
-    path_to_config = select_config_file(tool_name)
-    check_if_config_yml_exists(path_to_config)
-    config_list = open_and_read_config_file(path_to_config, tool_name)
-    config = select_class_to_create_config(tool_name, config_list)
+    config = _create_global_config(config_list)
     return config
 
 
