@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
-import logging
 import csv
+import logging
 import re
 import traceback
 from pathlib import Path
@@ -66,12 +66,14 @@ def check_if_csv_file_edited(path_to_csv):
     logging.error("Invalid Input")
     return check_if_csv_file_edited(path_to_csv)
 
+
 def extract_csv_header(path_to_csv):
     """Returns the csv headers of the given csv file"""
     with open(path_to_csv, mode="r", encoding="utf-8") as csv_file:
         raw_csv_data = csv.DictReader(csv_file)
         header = raw_csv_data.fieldnames
         return header
+
 
 def ensure_valid_csv_header(path_to_csv, header_template):
     """Blocks until the user fixed any issue with the csv headers"""
@@ -87,8 +89,6 @@ def ensure_valid_csv_header(path_to_csv, header_template):
               f"Template header: {header_template}\n"
               f"Please correct header in line 1. If first entry looks weird, you need to convert csv to UTF-8 encoding. Press [enter] to recheck CSV file.")
         input("Press [enter] to recheck CSV file: ")
-
-
 
 
 def get_csv_path_and_validate_header():
