@@ -3,7 +3,6 @@ import logging
 import traceback
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
-import network_toolkit.config as config
 
 from alive_progress import alive_bar
 from netmiko import ConnectHandler

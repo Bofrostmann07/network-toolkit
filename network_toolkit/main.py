@@ -18,7 +18,7 @@ logging.basicConfig(
     format="%(asctime)s %(levelname)s: %(message)s",
     datefmt="%Y-%m-%dT%H:%M:%SZ",
     level=logging.INFO
-)
+    )
 
 
 def is_main():
