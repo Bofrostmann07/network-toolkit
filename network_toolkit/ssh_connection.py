@@ -18,6 +18,7 @@ logging.getLogger("netmiko").setLevel(logging.WARNING)
 
 
 def run_show_command(switches, cli_show_command):
+    """Runs the cli command on all the switches"""
     logging.info(f"Starting to execute '{cli_show_command}' on {len(switches)} switches...")
     combined_cli_output = {}
 
@@ -32,7 +33,8 @@ def run_show_command(switches, cli_show_command):
     return combined_cli_output
 
 
-def fetch_switch_config(switch_element, command):
+def run_command_on_switch(switch_element, command):
+    """Connects via ssh to the switch and runs the given command"""
     ssh_parameter = {
         'device_type': switch_element.os,
         'host': switch_element.ip,
