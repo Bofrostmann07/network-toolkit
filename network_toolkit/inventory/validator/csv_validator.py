@@ -92,6 +92,7 @@ def ensure_valid_csv_header(path_to_csv, header_template):
 
 
 def get_csv_path_and_validate_header():
+    path_to_csv = ensure_file_extension(config.GLOBAL_CONFIG.path_to_csv_file)
     path_to_csv = validate_csv_path(path_to_csv)
     check_if_csv_file_edited(path_to_csv)
     header_template = ['hostname', 'ip', 'os']  # TODO Template for tool 'Interface search'
