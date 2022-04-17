@@ -1,14 +1,14 @@
 # -*- coding: UTF-8 -*-
-import logging
 import json
+import logging
 import os
 import signal
 from datetime import datetime
 from pathlib import Path
-from ssh_connection import wrapper_send_show_command_to_switches
-from inventory import import_switches_from_csv
-import network_toolkit.config as config
 
+import network_toolkit.config as config
+from inventory import import_switches_from_csv
+from ssh_connection import wrapper_send_show_command_to_switches
 
 logging.basicConfig(
     # filename='test.log',

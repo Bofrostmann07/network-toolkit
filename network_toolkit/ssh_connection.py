@@ -1,10 +1,10 @@
-import logging
 import json
 from netmiko import ConnectHandler
 from netmiko.ssh_exception import NetMikoTimeoutException
 from paramiko.ssh_exception import SSHException
 from netmiko.ssh_exception import AuthenticationException
 from ntc_templates.parse import parse_output
+import logging
 import traceback
 from alive_progress import alive_bar
 from threading import Event, Thread

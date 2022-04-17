@@ -1,6 +1,6 @@
+import logging
 import re
 import socket
-import logging
 from threading import Event, Thread
 from queue import Queue, Empty
 from time import sleep
