@@ -46,26 +46,25 @@ def ensure_csv_exists(path_to_csv):
 
 
 def check_if_csv_file_edited(path_to_csv):
+    """Check if the csv file was edited and let user decide how to proceed"""
     file_size = Path(path_to_csv).stat().st_size
     if file_size > 81:
         logging.debug(f"CSV file seems to be edited. Size: {file_size}B")
         return
-    else:
-        logging.warning("CSV file seems to be unedited.")
-        print("Press [enter] to check the CSV file once more, after you edited it.")
-        print("Enter '[c]ontinue' to proceed.")
-        user_input = input("[ENTER]/[c]:")
-        if user_input == "":
-            return check_if_csv_file_edited(path_to_csv)
-        elif user_input == "c" or user_input == "continue":
-            logging.info("Proceeding with unedited CSV file")
-            return
-        else:
-            logging.error("Invalid Input")
-            return check_if_csv_file_edited(path_to_csv)
 
+    logging.warning("CSV file seems to be unedited.")
+    print("Press [enter] to check the CSV file once more, after you edited it.")
+    print("Enter '[c]ontinue' to proceed.")
 
+    user_input = input("[ENTER]/[c]:")
+    if user_input == "":
+        return check_if_csv_file_edited(path_to_csv)
+    elif user_input == "c" or user_input == "continue":
+        logging.info("Proceeding with unedited CSV file")
+        return
 
+    logging.error("Invalid Input")
+    return check_if_csv_file_edited(path_to_csv)
 
 def extract_csv_header(path_to_csv):
     with open(path_to_csv, mode="r", encoding="utf-8") as csv_file:
