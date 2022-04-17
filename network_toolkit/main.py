@@ -27,7 +27,7 @@ def is_main():
 
 def fetch_switch_config():
     switch_data = import_switches_from_csv()
-    check_ssh_connection(switch_data)
+    switch_data = check_ssh_connection(switch_data)
 
     # TODO rewrite code to be more readable but less pythonic, quite sad :(
     # Filter out all switches that are not reachable
