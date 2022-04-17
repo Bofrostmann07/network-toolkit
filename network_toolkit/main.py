@@ -207,5 +207,3 @@ if is_main():
     # parse_pattern: ^ (interface. *)\n((?:.* \n) +?)!
     # path_raw_output: raw_output / interface_eth_config   ERLEDIGT
     # path_results: results / ERLEDIGT
-
-    # TODO __init__ vereinheitlichen
