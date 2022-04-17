@@ -1,96 +1,56 @@
 import logging
 import re
 import socket
-from threading import Event, Thread
-from queue import Queue, Empty
-from time import sleep
+from concurrent.futures import ThreadPoolExecutor
+
 from alive_progress import alive_bar
 from network_toolkit import fetch_switch_config
 
-# Global variables
-worker_threads = []
 import network_toolkit.config as config
 
 
 def wrapper_check_for_ssh_reachability(validated_switch_data):
     if config.GLOBAL_CONFIG.skip_ssh_reachability_check:
-        reachable_switch_data = skip_check_ssh_reachability(validated_switch_data)
-        return reachable_switch_data
-    results_from_ssh_reachability_checker = fill_input_queue_start_worker_fill_output_queue(validated_switch_data)
-    reachable_switch_data = manipulate_networkswitches_reachability(validated_switch_data, results_from_ssh_reachability_checker)
+        logging.info("Skip: SSH reachability check. [4/5]")
+        for switch_element in validated_switch_data:
+            switch_element.reachable = True
+        return validated_switch_data
+
+    ssh_reachability_results = check_switch_reachability(validated_switch_data)
+    reachable_switch_data = manipulate_networkswitches_reachability(validated_switch_data, ssh_reachability_results)
     return reachable_switch_data
 
 
-def skip_check_ssh_reachability(validated_switch_data):
-    for switch_element in validated_switch_data:
-        switch_element.reachable = True
-    logging.info("Skip: SSH reachability check. [4/5]")
-    return validated_switch_data
-
-
-def fill_input_queue_start_worker_fill_output_queue(validated_switch_data):
+def check_switch_reachability(validated_switch_data):
     logging.info(f"Starting SSH reachability check on TCP port {config.GLOBAL_CONFIG.ssh_port} for {len(validated_switch_data)} switches...")
-    with alive_bar(total=len(validated_switch_data)) as bar:
-        stop_event, input_queue, output_queue = start_workers(num_workers=config.GLOBAL_CONFIG.number_of_worker_threads, bar=bar)
-        for switch_element in validated_switch_data:
-            if switch_element.reachable is False:
-                ip = switch_element.ip
-                input_queue.put((ip, config.GLOBAL_CONFIG.ssh_port))
-
-        # Wait for the input queue to be emptied
-        while not input_queue.empty():
-            sleep(0.1)
-        # Stop the workers
-        stop_event.set()
-        # Wait until all worker threads are done
-        for w in worker_threads:
-            w.join()
-
     results = {}
-    # Wait for the output queue to be emptied
-    while not output_queue.empty() and len(validated_switch_data) != len(results):
-        try:
-            ip, reachable = output_queue.get(block=False)
-        except Empty:
-            pass
-        else:
-            results[ip] = reachable
+
+    with alive_bar(total=len(validated_switch_data)) as bar:
+        with ThreadPoolExecutor(max_workers=config.GLOBAL_CONFIG.number_of_worker_threads) as executor:
+            futures = [executor.submit(check_reachability, switch_element.ip, config.GLOBAL_CONFIG.ssh_port) for switch_element in validated_switch_data]
+            for future in futures:
+                ip, reachable = future.result()
+                results[ip] = reachable
+                bar()
+
     logging.debug(results)
     return results
 
 
-def worker(stop_event, input_queue, output_queue, bar):
-    while not (stop_event.is_set() and input_queue.empty()):
-        try:
-            ip, port = input_queue.get(block=True, timeout=1)
-        except Empty:
-            continue
-        try:
-            # Open TCP Socket for SSH reachability check
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                socket.setdefaulttimeout(config.GLOBAL_CONFIG.ssh_timeout)
-                result = sock.connect_ex((ip, port))
-            if result == 0:
-                reachable = True
-            else:
-                reachable = False
-        except Exception as e:
+def check_reachability(ip, port):
+    try:
+        # Open TCP Socket for SSH reachability check
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            socket.setdefaulttimeout(config.GLOBAL_CONFIG.ssh_timeout)
+            result = sock.connect_ex((ip, port))
+        if result == 0:
+            reachable = True
+        else:
             reachable = False
-            print(e)
-        output_queue.put((ip, reachable))
-        bar()
-
-
-def start_workers(num_workers, bar):
-    stop_event = Event()
-    input_queue = Queue()
-    output_queue = Queue()
-    for _ in range(num_workers):
-        w = Thread(target=worker, args=(stop_event, input_queue, output_queue, bar))
-        w.daemon = True
-        w.start()
-        worker_threads.append(w)
-    return stop_event, input_queue, output_queue
+    except Exception as e:
+        reachable = False
+        print(e)
+    return ip, reachable
 
 
 def manipulate_networkswitches_reachability(validated_switch_data, results_from_ssh_reachability_checker):
