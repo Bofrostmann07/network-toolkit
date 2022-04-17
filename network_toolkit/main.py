@@ -39,7 +39,7 @@ def fetch_switch_config():
 
 
 def save_parsed_cli_output_as_json(parsed_cli_output):
-    """Stores the parsed cli output as json file and returns path"""
+    """Stores the parsed cli output as json file and returns name of the file"""
     local_time = datetime.now()
     timestamp_url_safe = local_time.strftime("%Y-%m-%dT%H-%M-%S")
     file_path = "raw_output/interface_eth_config/" + timestamp_url_safe + ".json"
@@ -47,7 +47,7 @@ def save_parsed_cli_output_as_json(parsed_cli_output):
         with open(file_path, "x") as json_file:
             json.dump(parsed_cli_output, json_file, indent=2)
             logging.info(f"Created result file @ {file_path}")
-        return file_path
+        return Path(file_path).name
     except Exception:
         logging.error("Could not create result file")
 
