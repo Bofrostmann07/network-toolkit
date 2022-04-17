@@ -8,6 +8,7 @@ from pathlib import Path
 
 import network_toolkit.config as config
 from inventory import import_switches_from_csv
+from inventory.validator.connection_validator import check_ssh_connection
 from ssh_connection import wrapper_send_show_command_to_switches
 
 logging.basicConfig(
@@ -26,6 +27,7 @@ def is_main():
 
 def fetch_switch_config():
     switch_data = import_switches_from_csv()
+    check_ssh_connection(switch_data)
 
     # TODO rewrite code to be more readable but less pythonic, quite sad :(
     # Filter out all switches that are not reachable
