@@ -58,6 +58,13 @@ def search_command_user_input():
     display_text_for_prompt_to_select_output_file(filtered_file_list)
     all_files = fetch_interface_config_files()
     filtered_file_list = filter_json_files(all_files)
+
+    if not filtered_file_list:
+        logging.warning("Could not find a 'show run' file. Retrieving now!")
+        switch_config = fetch_switch_config()
+        config_path = save_parsed_cli_output_as_json(switch_config)
+        filtered_file_list.append(config_path)
+
     path_output_file = prompt_to_select_output_file(filtered_file_list)
 
     print("You can use a 'negative search' to list all interfaces, which dont have the typed in command present, by appending '--n' at the end.\n"
