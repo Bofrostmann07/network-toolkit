@@ -7,7 +7,8 @@ from datetime import datetime
 from pathlib import Path
 from ssh_connection import wrapper_send_show_command_to_switches
 from inventory import import_switches_from_csv
-from config import wrapper_load_config
+import network_toolkit.config as config
+
 
 logging.basicConfig(
     # filename='test.log',
@@ -38,7 +39,6 @@ def fetch_switch_config():
     reachable_switches = [x for x in switch_data if x.reachable]
     parsed_config = wrapper_send_show_command_to_switches(reachable_switches, "show DUMMY", config)
     logging.info("Finished fetching switch config.")
-    menue()
     # search_for_nac_enabled(parsed_config)
     # cli_show_command = "show privilege"
     # test = ssh_connect_only_one_show_command(switch_data, cli_show_command)
@@ -47,7 +47,8 @@ def fetch_switch_config():
 
 def search_command_user_input():
     tool_name = "search_interface_eth"
-    tool_config = wrapper_load_config(tool_name)
+    tool_config = config.wrapper_load_config(tool_name)
+    config.GLOBAL_CONFIG = tool_config
     all_files = read_dir_and_get_file_names(tool_config)
     filtered_file_list = build_list_of_all_files(all_files)
     display_text_for_prompt_to_select_output_file(filtered_file_list)
@@ -57,7 +58,6 @@ def search_command_user_input():
     output_file = open_selected_output_file(path_output_file)
     search_result = search_in_output_file(output_file, search_command, positive_search)
     write_search_result(search_result, path_output_file, search_command, positive_search, tool_config)
-    menue()
 
 
 def read_dir_and_get_file_names(tool_config):
@@ -116,7 +116,6 @@ def prompt_user_when_no_shrun_file_exist():
         fetch_switch_config()
     else:
         print("\033[H\033[J", end="")  # Flush terminal
-        menue()
 
 
 def display_text_for_prompt_for_search_command():
@@ -170,35 +169,32 @@ def write_search_result(search_result, path_output_file, search_command, positiv
 
 
 def menue():
-    print("\nPlease choose the Tool by number:\n"
-          "1 - Interface search\n"
-          "2 - Advanced show interface\n"
-          "3 - Meraki bulk edit\n"
-          "99 - Show Config Values (global_config.yml)")
-    tool_number = input("Tool number: ")
-    if tool_number == "1":
-        print("\033[H\033[J", end="")  # Flush terminal
-        logging.info("Tool: 'Interface search' started")
-        search_command_user_input()
-    elif tool_number == "2":
-        print("Tool is not implemented yet.")
-        menue()
-    elif tool_number == "3":
-        print("Tool will soon be available.")
-        menue()
-    elif tool_number == "99":
-        print(global_config)
-        menue()
-    else:
-        print(tool_number)
-        print("Invalid input. You need to enter the number of the tool.")
-        menue()
+    while True:
+        print("\nPlease choose the Tool by number:\n"
+              "1 - Interface search\n"
+              "2 - Advanced show interface\n"
+              "3 - Meraki bulk edit\n"
+              "99 - Show Config Values (global_config.yml)")
+        tool_number = input("Tool number: ")
+        if tool_number == "1":
+            print("\033[H\033[J", end="")  # Flush terminal
+            logging.info("Tool: 'Interface search' started")
+            search_command_user_input()
+        elif tool_number == "2":
+            print("Tool is not implemented yet.")
+        elif tool_number == "3":
+            print("Tool will soon be available.")
+        elif tool_number == "99":
+            print(global_config)
+        else:
+            print(tool_number)
+            print("Invalid input. You need to enter the number of the tool.")
 
 
 def check_all_prerequisites():
     global global_config
     tool_name = "global"
-    global_config = wrapper_load_config(tool_name)
+    global_config = config.wrapper_load_config(tool_name)
     return
 
 
@@ -222,3 +218,4 @@ if is_main():
     # path_raw_output: raw_output / interface_eth_config   ERLEDIGT
     # path_results: results / ERLEDIGT
 
+    # TODO __init__ vereinheitlichen

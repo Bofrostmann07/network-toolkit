@@ -48,8 +48,8 @@ def import_switches_from_csv(config):
     set_global_config(config)
     validated_csv_file_path = get_csv_path_and_validate_header(config)
     validated_switch_data = wrapper_read_csv_and_validate_switch_data(validated_csv_file_path)
-    reachable_switch_data = check_ssh_connection(validated_switch_data, config)
-    return reachable_switch_data
+    # reachable_switch_data = check_ssh_connection(validated_switch_data)
+    return validated_switch_data
 
 
 def set_global_config(config):

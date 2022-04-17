@@ -140,3 +140,6 @@ def wrapper_load_config(tool_name):
     config_list = open_and_read_config_file(path_to_config, tool_name)
     config = select_class_to_create_config(tool_name, config_list)
     return config
+
+
+GLOBAL_CONFIG = None
