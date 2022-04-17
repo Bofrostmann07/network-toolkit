@@ -9,7 +9,7 @@ from pathlib import Path
 import network_toolkit.config as config
 from inventory import import_switches_from_csv
 from inventory.validator.connection_validator import check_ssh_connection
-from ssh_connection import wrapper_send_show_command_to_switches
+from ssh_connection import run_show_command
 
 logging.basicConfig(
     # filename='test.log',
@@ -26,18 +26,18 @@ def is_main():
 
 
 def fetch_switch_config():
+    """Read config via ssh from switches defined in switchlist.csv"""
     switch_data = import_switches_from_csv()
     switch_data = check_ssh_connection(switch_data)
 
     # TODO rewrite code to be more readable but less pythonic, quite sad :(
     # Filter out all switches that are not reachable
     reachable_switches = [x for x in switch_data if x.reachable]
-    parsed_config = wrapper_send_show_command_to_switches(reachable_switches, "show DUMMY")
+    parsed_config = run_show_command(reachable_switches, "show derived-config | begin interface")
     logging.info("Finished fetching switch config.")
-    # search_for_nac_enabled(parsed_config)
-    # cli_show_command = "show privilege"
-    # test = ssh_connect_only_one_show_command(switch_data, cli_show_command)
-    # print(test)
+    return parsed_config
+
+
 def save_parsed_cli_output_as_json(parsed_cli_output):
     """Stores the parsed cli output as json file and returns path"""
     local_time = datetime.now()
