@@ -1,7 +1,6 @@
 # -*- coding: UTF-8 -*-
 import json
 import logging
-import os
 import signal
 from datetime import datetime
 from pathlib import Path
@@ -42,25 +41,25 @@ def save_parsed_cli_output_as_json(parsed_cli_output):
     """Stores the parsed cli output as json file and returns name of the file"""
     local_time = datetime.now()
     timestamp_url_safe = local_time.strftime("%Y-%m-%dT%H-%M-%S")
-    file_path = "raw_output/interface_eth_config/" + timestamp_url_safe + ".json"
+    str_file_path = "raw_output/interface_eth_config/" + timestamp_url_safe + ".json"
+    file_path = Path.cwd() / str_file_path
     try:
         with open(file_path, "x") as json_file:
             json.dump(parsed_cli_output, json_file, indent=2)
             logging.info(f"Created result file @ {file_path}")
-        return Path(file_path).name
+        return file_path
     except Exception:
         logging.error("Could not create result file")
 
 
 def search_command_user_input():
-    all_files = fetch_interface_config_files()
-    filtered_file_list = filter_json_files(all_files)
+    file_list = fetch_interface_config_files()
 
-    if not filtered_file_list:
+    if not file_list:
         logging.warning("Could not find a 'show run' file. Retrieving now!")
         switch_config = fetch_switch_config()
         config_path = save_parsed_cli_output_as_json(switch_config)
-        filtered_file_list.append(config_path)
+        file_list.append(config_path)
 
     logging.info(f"Found {len(file_list)} 'Interface Ethernet Config' files. The latest is from {file_list[-1].name.strip('.json')}.")
     print("[ENTER]:     Use latest file\n"
@@ -68,7 +67,7 @@ def search_command_user_input():
           "dir:         Show a list of all files\n"
           "[filename]:  Use the specified file\n")
 
-    path_output_file = prompt_to_select_output_file(filtered_file_list)
+    path_output_file = prompt_to_select_output_file(file_list)
 
     print("You can use a 'negative search' to list all interfaces, which dont have the typed in command present, by appending '--n' at the end.\n"
           "For example: 'switchport mode access --n' will list all interfaces, which arent access ports.")
@@ -82,22 +81,13 @@ def search_command_user_input():
 def fetch_interface_config_files():
     """Reads local directory and returns list of all stored config files"""
     path_raw_output = Path.cwd() / 'raw_output/interface_eth_config'
+
     try:
-        all_files = os.listdir(path_raw_output)
+        all_files = list(path_raw_output.glob("**/*.json"))
         return all_files
     except FileNotFoundError:
-        logging.error(f"Could not found {path_raw_output}")
+        logging.error(f"Could not find {path_raw_output}")
         quit()
-
-
-def filter_json_files(all_files):
-    """Filter out all files that don't end on .json"""
-    filtered_file_list = []
-    for file_name in all_files:
-        if file_name.endswith(".json"):
-            filtered_file_list.append(file_name)
-
-    return sorted(filtered_file_list)
 
 
 def prompt_to_select_output_file(filtered_file_list):
@@ -105,10 +95,8 @@ def prompt_to_select_output_file(filtered_file_list):
     while True:
         user_input = input()
         if user_input == "" or user_input == "latest":
-            output_file_path = file_path + filtered_file_list[-1]
-            absolute_file_path = Path.cwd() / output_file_path
             logging.info(f"Using lastet file '{filtered_file_list[-1]}'")
-            return absolute_file_path
+            return filtered_file_list[-1]
         elif user_input in filtered_file_list:
             output_file_path = file_path + user_input
             absolute_file_path = Path.cwd() / output_file_path
@@ -119,7 +107,7 @@ def prompt_to_select_output_file(filtered_file_list):
             config_path = save_parsed_cli_output_as_json(switch_config)
             return config_path
         elif user_input == "dir" or user_input == "ls":
-            print(filtered_file_list)
+            print(f"{[file_path.name for file_path in filtered_file_list]}")
         else:
             logging.warning(f"{user_input} was not found in directory.")
 
@@ -209,7 +197,6 @@ def check_all_prerequisites():
 
 def signal_handler(sig, frame):
     # Signal handler for processing CTRL+C
-    logging.warning("Received keyboard interrupt. Stopping!")
     logging.warning("\nReceived keyboard interrupt. Stopping!")
     quit()
 
