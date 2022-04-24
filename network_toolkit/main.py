@@ -159,10 +159,11 @@ def search_in_output_file(output_file, search_command, positive_search):
     search_result = {}
     for switch_ip, switch_config in output_file.items():
         interface_list = []
-        for interface, int_config in switch_config.items():
+        for interface, int_config in switch_config.get("eth_interfaces", {}).items():
             if interface.startswith("interface") and (search_command in int_config) == positive_search:
                 interface_list.append(interface)
-        search_result[switch_ip] = interface_list
+        keyname = switch_ip + " - " + switch_config.get("hostname", "No hostname")
+        search_result[keyname] = interface_list
     return search_result
 
 
@@ -209,6 +210,7 @@ def check_all_prerequisites():
 def signal_handler(sig, frame):
     # Signal handler for processing CTRL+C
     logging.warning("Received keyboard interrupt. Stopping!")
+    logging.warning("\nReceived keyboard interrupt. Stopping!")
     quit()
 
 
