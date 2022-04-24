@@ -17,7 +17,7 @@ logging.basicConfig(
     format="%(asctime)s %(levelname)s: %(message)s",
     datefmt="%Y-%m-%dT%H:%M:%SZ",
     level=logging.INFO
-    )
+)
 
 
 def is_main():
@@ -110,15 +110,6 @@ def prompt_to_select_output_file(filtered_file_list):
             print(f"{[file_path.name for file_path in filtered_file_list]}")
         else:
             logging.warning(f"{user_input} was not found in directory.")
-
-
-def prompt_user_when_no_shrun_file_exist():
-    logging.warning("Could not find a 'show run' file.")
-    user_input = input("Retrieve from switches now? [yes]/no: ")
-    if user_input == "yes" or user_input == "":
-        fetch_switch_config()
-    else:
-        print("\033[H\033[J", end="")  # Flush terminal
 
 
 def prompt_for_search_command():
