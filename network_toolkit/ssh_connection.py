@@ -23,7 +23,7 @@ def run_show_command(switches, cli_show_command):
             futures = [executor.submit(worker, switch_element, cli_show_command) for switch_element in switches]
             for future in futures:
                 switch_element = future.result()
-                combined_cli_output[switch_element.ip] = switch_element.interface_eth_config
+                combined_cli_output[switch_element.ip] = {"hostname": switch_element.hostname, "reachable": switch_element.reachable, "eth_interfaces": switch_element.interface_eth_config}
                 bar()
 
     return combined_cli_output
