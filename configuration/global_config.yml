@@ -7,5 +7,5 @@ global_config:
   ssh_timeout: 2
   number_of_worker_threads: 15
   debug_mode: False
-  skip_ssh_reachability_check: True
+  skip_ssh_reachability_check: False
   skip_ssh_authentication_check: False
