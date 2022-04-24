@@ -62,9 +62,11 @@ def search_command_user_input():
         config_path = save_parsed_cli_output_as_json(switch_config)
         filtered_file_list.append(config_path)
 
-    logging.info(f"Found {len(filtered_file_list)} 'show run' files. The latest is from {filtered_file_list[-1].strip('.json')}.")
-    print("To use the lastet file, press [enter]. To use another file, type the full filename.\n"
-          "To list all 'sh run' files, use 'dir' or 'ls'. To retrieve 'show run' now, use 'get'.")
+    logging.info(f"Found {len(file_list)} 'Interface Ethernet Config' files. The latest is from {file_list[-1].name.strip('.json')}.")
+    print("[ENTER]:     Use latest file\n"
+          "get:         Retrieve a new file now\n"
+          "dir:         Show a list of all files\n"
+          "[filename]:  Use the specified file\n")
 
     path_output_file = prompt_to_select_output_file(filtered_file_list)
 
