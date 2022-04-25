@@ -91,7 +91,7 @@ def fetch_interface_config_files():
 
 
 def prompt_to_select_output_file(filtered_file_list):
-    file_path = "raw_output/interface_eth_config/"  # TODO use path from class ToolConfiguration
+    file_path = "raw_output/interface_eth_config/"
     while True:
         user_input = input()
         if user_input == "" or user_input == "latest":
@@ -197,10 +197,3 @@ signal.signal(signal.SIGINT, signal_handler)
 if is_main():
     check_all_prerequisites()
     menue()
-
-    # search_interface_eth:
-    # input_file: switchlist.csv
-    # output_needs_parse: True
-    # parse_pattern: ^ (interface. *)\n((?:.* \n) +?)!
-    # path_raw_output: raw_output / interface_eth_config   ERLEDIGT
-    # path_results: results / ERLEDIGT
