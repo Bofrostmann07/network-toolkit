@@ -1,7 +1,0 @@
---- # Internal Config. Don´t change any value, unless you know what you´re doing!
-search_interface_eth:
-  input_file: switchlist.csv
-  output_needs_parse: True
-  parse_pattern: ^(interface.*)\n((?:.*\n)+?)!
-  path_raw_output: raw_output/interface_eth_config
-  path_results: results/

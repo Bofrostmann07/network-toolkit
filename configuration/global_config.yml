@@ -1,0 +1,11 @@
+--- # Global Config
+global_config:
+  ssh_username: automate
+  ssh_password: automateme
+  path_to_csv_file: switchlist.csv
+  ssh_port: 22
+  ssh_timeout: 2
+  number_of_worker_threads: 15
+  debug_mode: False
+  skip_ssh_reachability_check: False
+  skip_ssh_authentication_check: False
