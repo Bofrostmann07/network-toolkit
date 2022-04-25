@@ -4,6 +4,8 @@ import logging
 import signal
 from datetime import datetime
 from pathlib import Path
+from dataclasses import dataclass
+import re
 
 import network_toolkit.config as config
 from inventory import import_switches_from_csv
@@ -22,6 +24,13 @@ logging.basicConfig(
 
 def is_main():
     return __name__ == "__main__"
+
+
+@dataclass(frozen=True)
+class SearchMaskFlags:
+    negative_search: bool
+    strip_oobm: bool
+    strip_uplink: bool
 
 
 def fetch_switch_config():
@@ -65,17 +74,20 @@ def search_command_user_input():
     print("[ENTER]:     Use latest file\n"
           "get:         Retrieve a new file now\n"
           "dir:         Show a list of all files\n"
-          "[filename]:  Use the specified file\n")
+          "[filename]:  Use the specified file")
 
     path_output_file = prompt_to_select_output_file(file_list)
 
-    print("You can use a 'negative search' to list all interfaces, which dont have the typed in command present, by appending '--n' at the end.\n"
-          "For example: 'switchport mode access --n' will list all interfaces, which arent access ports.")
+    print(r"""    Usage: "[search mask]" [flags]
+    Flags/Options: 
+    --n     Turn to negative search mode. Will list all interfaces, which wont fit the search mask.
+    --o     Tries to strip off out-of-band-management interfaces
+    --u     Tries to strip off uplink interfaces
+    Example: "switchport mode access" --n --u""")
 
-    search_command, positive_search = prompt_for_search_command()
-    output_file = open_selected_output_file(path_output_file)
-    search_result = search_in_output_file(output_file, search_command, positive_search)
-    write_search_result(search_result, path_output_file, search_command, positive_search)
+    search_mask, search_mask_flags = prompt_for_search_command()
+    search_result = search_in_output_file(path_output_file, search_mask, search_mask_flags)
+    write_search_result(search_result, path_output_file, search_mask, search_mask_flags)
 
 
 def fetch_interface_config_files():
@@ -93,7 +105,7 @@ def fetch_interface_config_files():
 def prompt_to_select_output_file(filtered_file_list):
     file_path = "raw_output/interface_eth_config/"
     while True:
-        user_input = input()
+        user_input = input("Command:")
         if user_input == "" or user_input == "latest":
             logging.info(f"Using lastet file '{filtered_file_list[-1]}'")
             return filtered_file_list[-1]
@@ -109,51 +121,64 @@ def prompt_to_select_output_file(filtered_file_list):
         elif user_input == "dir" or user_input == "ls":
             print(f"{[file_path.name for file_path in filtered_file_list]}")
         else:
-            logging.warning(f"{user_input} was not found in directory.")
+            logging.warning(f"'{user_input}' was not found in directory.")
 
 
+# TODO https://regex101.com/r/p50usT/3 RegEx vebessern
 def prompt_for_search_command():
-    raw_command = input("Enter search command: ")
-    if raw_command == "":
-        logging.warning("Search command cant be empty")
+    negative_search = False
+    strip_oobm = False
+    strip_uplink = False
+
+    search_mask = input("Search mask: ")
+    mask_pattern = re.compile(r"^[\"'](.*)[\"']((?: |--\w+)*)", re.IGNORECASE)
+    match_mask = mask_pattern.search(search_mask)
+
+    if not match_mask:
+        logging.warning("Search mask is empty or the quotation marks are missing")
         return prompt_for_search_command()
-    elif raw_command.endswith("--n"):
-        positive_search = False
-        search_command = raw_command.strip("--n")
-        search_command = search_command.strip(" ")
-    else:
-        search_command = raw_command.strip(" ")
-        positive_search = True
-    logging.info(f"Command: '{search_command}'. Positive search: {positive_search}.")
-    return search_command, positive_search
+
+    if match_mask.group(2).find("--n") != -1:
+        negative_search = True
+    if match_mask.group(2).find("--o") != -1:
+        strip_oobm = True
+    if match_mask.group(2).find("--u") != -1:
+        strip_uplink = True
+
+    search_mask_flags = SearchMaskFlags(negative_search, strip_oobm, strip_uplink)
+    logging.info(f"Mask: '{match_mask.group(1)}'. Set {search_mask_flags}.")
+    return match_mask.group(1), search_mask_flags
 
 
-def open_selected_output_file(path_output_file):
+def search_in_output_file(path_output_file, search_mask, search_mask_flags):
     with open(path_output_file, mode="r", encoding="utf-8") as serial_output_file:
-        output_file = json.load(serial_output_file)
-    return output_file
+        raw_int_eth_config = json.load(serial_output_file)
 
-
-def search_in_output_file(output_file, search_command, positive_search):
     search_result = {}
-    for switch_ip, switch_config in output_file.items():
+    uplink_int_pattern = re.compile(r"\d+/(?!0/)\d+/\d+$")
+    for switch_ip, switch_config in raw_int_eth_config.items():
         interface_list = []
-        for interface, int_config in switch_config.get("eth_interfaces", {}).items():
-            if interface.startswith("interface") and (search_command in int_config) == positive_search:
-                interface_list.append(interface)
+        for int_name, int_config in switch_config.get("eth_interfaces", {}).items():
+            if search_mask_flags.strip_oobm and int_name.endswith(("FastEthernet0", "GigabitEthernet0/0")):
+                continue
+            if search_mask_flags.strip_uplink and uplink_int_pattern.search(int_name):
+                print(int_name)
+                continue
+            if (search_mask in int_config) != search_mask_flags.negative_search:
+                interface_list.append(int_name)
         keyname = switch_ip + " - " + switch_config.get("hostname", "No hostname")
         search_result[keyname] = interface_list
     return search_result
 
 
-def write_search_result(search_result, path_output_file, search_command, positive_search):
+def write_search_result(search_result, path_output_file, search_mask, search_mask_flags):
     path_results = 'results/'
     local_time = datetime.now()
     timestamp_url_safe = (local_time.strftime("%Y-%m-%dT%H-%M-%S"))
     file_path = path_results + timestamp_url_safe + ".json"
     with open(file_path, "x") as json_file:
         json_file.write(f"This result is based on data @ {path_output_file}.\n"
-                        f"Search command: '{search_command}'. Positive Search: {positive_search}\n\n")
+                        f"Search mask: '{search_mask}'. Set {search_mask_flags}\n\n")
         json.dump(search_result, json_file, indent=2)
         json_file.write("\n\nThis result was created by 'https://github.com/Bofrostmann07/network-toolkit'.")
     logging.info(f"Wrote {file_path}. Search is done.")
@@ -188,7 +213,7 @@ def check_all_prerequisites():
 
 def signal_handler(sig, frame):
     # Signal handler for processing CTRL+C
-    logging.warning("\nReceived keyboard interrupt. Stopping!")
+    logging.warning("Received keyboard interrupt. Stopping!")
     quit()
 
 
