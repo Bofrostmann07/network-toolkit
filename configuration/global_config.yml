@@ -1,7 +1,7 @@
 --- # Global Config
 global_config:
-  ssh_username: automate
-  ssh_password: automateme
+  ssh_username:
+  ssh_password:
   path_to_csv_file: switchlist.csv
   ssh_port: 22
   ssh_timeout: 2
