@@ -51,7 +51,7 @@ def load_input_config():
         quit()
 
     input_config_obj = _create_input_config(input_config)
-    print(input_config_obj)
+    logging.debug(input_config_obj)
     return input_config_obj
 
 
