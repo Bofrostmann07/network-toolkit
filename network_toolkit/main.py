@@ -8,7 +8,7 @@ from dataclasses import dataclass
 import re
 
 import network_toolkit.config as config
-from inventory import import_switches_from_csv
+from inventory import import_switches_from_csv, import_switches_from_prime
 from inventory.validator.connection_validator import check_ssh_connection
 from ssh_connection import run_show_command
 
@@ -35,7 +35,11 @@ class SearchMaskFlags:
 
 def fetch_switch_config():
     """Read config via ssh from switches defined in switchlist.csv"""
-    switch_data = import_switches_from_csv()
+    if config.GLOBAL_CONFIG.input_source == "csv":
+        switch_data = import_switches_from_csv()
+    elif config.GLOBAL_CONFIG.input_source == "prime":
+        import_switches_from_prime()
+
     switch_data = check_ssh_connection(switch_data)
 
     # TODO rewrite code to be more readable but less pythonic, quite sad :(
