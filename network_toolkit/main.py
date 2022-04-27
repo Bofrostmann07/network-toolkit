@@ -208,7 +208,7 @@ def menue():
 
 
 def check_all_prerequisites():
-    config.GLOBAL_CONFIG = config.load_config()
+    config.GLOBAL_CONFIG = config.load_global_config()
 
 
 def signal_handler(sig, frame):
