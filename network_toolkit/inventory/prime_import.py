@@ -20,13 +20,13 @@ def _query_switch_data(prime_config):
     try:
         response = requests.get(url, verify=False, timeout=5, auth=(prime_config.username, prime_config.password))
     except requests.exceptions.ConnectionError:
-        logging.error(f"Timeout - Please check address({prime_config.address}) and reachability")
+        logging.critical(f"Timeout - Please check address({prime_config.address}) and reachability")
         quit()
     except Exception as e:
         print(e)
 
     if response.status_code == 401:
-        logging.error("HTTP 401 Unauthorized - Please check username, password and role('NBI Read')")
+        logging.critical("HTTP 401 Unauthorized - Please check username, password and role('NBI Read')")
         quit()
     elif response.status_code == 404:
         logging.critical("HTTP 404 Not found - Can´t access API v4. Update Prime Infrastructure or use CSV import")
