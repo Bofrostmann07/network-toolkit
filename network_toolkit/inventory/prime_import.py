@@ -41,13 +41,13 @@ def _query_switch_data(prime_config):
         logging.critical(f"HTTP {response.status_code} - Unknown Error")
         quit()
 
+    logging.info("Connected to Prime Infrastructure API. [1/5]")
     response_data = response.json()
 
     if response_data["queryResponse"]["@count"] == 0:
         logging.critical(f"Found no devices. Check your group('{prime_config.group}')")
         quit()
 
-    logging.info("Connected to Prime Infrastructure API. [1/5]")
     return response_data
 
 

@@ -43,6 +43,12 @@ def _create_input_config(input_config):
     return opt_config
 
 
+def _check_values_set(config):
+    if config.username is None or config.password is None or config.address is None:
+        logging.critical("Prime Config: Username, password and address must be set in 'global_config.yml'.")
+        quit()
+
+
 def load_input_config():
     try:
         input_config = _open_and_read_config_file()
@@ -51,7 +57,7 @@ def load_input_config():
         quit()
 
     input_config_obj = _create_input_config(input_config)
-    logging.debug(input_config_obj)
+    _check_values_set(input_config_obj)
     return input_config_obj
 
 
