@@ -38,7 +38,7 @@ def fetch_switch_config():
     if config.GLOBAL_CONFIG.input_source == "csv":
         switch_data = import_switches_from_csv()
     elif config.GLOBAL_CONFIG.input_source == "prime":
-        import_switches_from_prime()
+        switch_data = import_switches_from_prime()
 
     switch_data = check_ssh_connection(switch_data)
 
