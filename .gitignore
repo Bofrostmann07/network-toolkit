@@ -55,5 +55,6 @@ ENV/
 .svn
 .git
 raw_output/**/*.json
+!**/mac_address_cache.json
 results/*.json
 *.~vsdx
