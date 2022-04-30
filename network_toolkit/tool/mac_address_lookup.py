@@ -7,7 +7,6 @@ from pathlib import Path
 from dataclasses import dataclass
 from datetime import datetime
 
-
 path_to_cache = Path.cwd() / "raw_output/mac_address_lookup/mac_address_cache.json"
 
 
@@ -19,14 +18,18 @@ class MacAddress:
 
 
 def _prompt_user():
-    print("Enter/Paste your content. Ctrl-D or Ctrl-Z ( windows ) to save it.")
+    logging.info("Enter/Paste your content. Ctrl-D/Ctrl-Z(Windows) or type 'end' to save it.")
     user_input = []
     while True:
         try:
             line = input()
         except EOFError:
             break
-        user_input.append(line)
+        if line == "end":
+            break
+        else:
+            user_input.append(line)
+    user_input = '\n'.join(user_input)
     return user_input
 
 
@@ -123,8 +126,6 @@ def _print_lookup(mac_list):
 
 
 def mac_address_batch_lookup():
-    # print("Enter in a list of MAC addresses separated by anything.")
-    # user_input = input("Batch:")
     user_input = _prompt_user()
 
     raw_mac_list = _filter_mac_addresses(user_input)
