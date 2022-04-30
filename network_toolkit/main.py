@@ -11,6 +11,7 @@ import network_toolkit.config as config
 from inventory import import_switches_from_csv, import_switches_from_prime
 from inventory.validator.connection_validator import check_ssh_connection
 from ssh_connection import run_show_command
+from tool import mac_address_batch_lookup
 
 logging.basicConfig(
     # filename='test.log',
@@ -192,7 +193,7 @@ def menue():
     while True:
         print("\nPlease choose the Tool by number:\n"
               "1 - Interface search\n"
-              "2 - Advanced show interface\n"
+              "2 - MAC address batch lookup\n"
               "3 - Meraki bulk edit\n"
               "99 - Show Config Values (global_config.yml)")
         tool_number = input("Tool number: ")
@@ -201,7 +202,9 @@ def menue():
             logging.info("Tool: 'Interface search' started")
             search_command_user_input()
         elif tool_number == "2":
-            print("Tool is not implemented yet.")
+            print("\033[H\033[J", end="")  # Flush terminal
+            logging.info("Tool: 'MAC address batch lookup' started")
+            mac_address_batch_lookup()
         elif tool_number == "3":
             print("Tool will soon be available.")
         elif tool_number == "99":
