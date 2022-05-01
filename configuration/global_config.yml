@@ -18,3 +18,7 @@ prime_config:
   password:
   address:
   group:
+
+mac_address_lookup:
+  # Get your personal API token from https://macvendors.com/register.
+  api_token_macvendors:
