@@ -37,7 +37,7 @@ def _prompt_user():
 
 
 def _filter_mac_addresses(user_input):
-    mask_pattern = re.compile(r"(?:[a-fA-F0-9]{2}[-:.]){5}[a-fA-F0-9]{2}|(?:[a-fA-F0-9]{4}.){2}[a-fA-F0-9]{4}|[a-fA-F0-9]{12}")
+    mask_pattern = re.compile(r"(?:[a-fA-F\d]{2}[-:.]){5}[a-fA-F\d]{2}|(?:[a-fA-F\d]{4}.){2}[a-fA-F\d]{4}|[a-fA-F\d]{12}")
     mac_list = mask_pattern.findall(user_input)
 
     if not mac_list:
