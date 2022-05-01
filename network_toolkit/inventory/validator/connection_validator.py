@@ -82,7 +82,7 @@ def check_ssh_authentication(switch_data):
 
     counter_failed_logins = 0
     priv_re_pattern = re.compile(r"\d{1,2}")
-    first_three_switches = switch_data[:2]
+    first_three_switches = switch_data[:3]
 
     for switch_element in first_three_switches:
         raw_cli_output = run_command_on_switch(switch_element, "show privilege")

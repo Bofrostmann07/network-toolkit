@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- New input source: Prime Infrastructure API v4 ([#26](https://github.com/Bofrostmann07/network-toolkit/issues/26))
+- New tool: MAC Address batch lookup
 
 ### Changed
 

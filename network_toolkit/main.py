@@ -8,9 +8,10 @@ from dataclasses import dataclass
 import re
 
 import network_toolkit.config as config
-from inventory import import_switches_from_csv
+from inventory import import_switches_from_csv, import_switches_from_prime
 from inventory.validator.connection_validator import check_ssh_connection
 from ssh_connection import run_show_command
+from tool import mac_address_batch_lookup
 
 logging.basicConfig(
     # filename='test.log',
@@ -35,7 +36,11 @@ class SearchMaskFlags:
 
 def fetch_switch_config():
     """Read config via ssh from switches defined in switchlist.csv"""
-    switch_data = import_switches_from_csv()
+    if config.GLOBAL_CONFIG.input_source == "csv":
+        switch_data = import_switches_from_csv()
+    elif config.GLOBAL_CONFIG.input_source == "prime":
+        switch_data = import_switches_from_prime()
+
     switch_data = check_ssh_connection(switch_data)
 
     # TODO rewrite code to be more readable but less pythonic, quite sad :(
@@ -188,7 +193,7 @@ def menue():
     while True:
         print("\nPlease choose the Tool by number:\n"
               "1 - Interface search\n"
-              "2 - Advanced show interface\n"
+              "2 - MAC address batch lookup\n"
               "3 - Meraki bulk edit\n"
               "99 - Show Config Values (global_config.yml)")
         tool_number = input("Tool number: ")
@@ -197,7 +202,9 @@ def menue():
             logging.info("Tool: 'Interface search' started")
             search_command_user_input()
         elif tool_number == "2":
-            print("Tool is not implemented yet.")
+            print("\033[H\033[J", end="")  # Flush terminal
+            logging.info("Tool: 'MAC address batch lookup' started")
+            mac_address_batch_lookup()
         elif tool_number == "3":
             print("Tool will soon be available.")
         elif tool_number == "99":
@@ -208,7 +215,7 @@ def menue():
 
 
 def check_all_prerequisites():
-    config.GLOBAL_CONFIG = config.load_config()
+    config.GLOBAL_CONFIG = config.load_global_config()
 
 
 def signal_handler(sig, frame):

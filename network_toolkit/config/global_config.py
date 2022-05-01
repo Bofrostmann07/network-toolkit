@@ -22,6 +22,7 @@ class GlobalConfiguration:
     debug_mode: bool
     skip_ssh_reachability_check: bool
     skip_ssh_authentication_check: bool
+    input_source: str
 
 
 def _open_and_read_config_file():
@@ -67,13 +68,14 @@ def _create_global_config(config_value):
                                         config_value["number_of_worker_threads"],
                                         config_value["debug_mode"],
                                         config_value["skip_ssh_reachability_check"],
-                                        config_value["skip_ssh_authentication_check"])
-    logging.debug("'global_config.yml' got successfully loaded and parsed.")
+                                        config_value["skip_ssh_authentication_check"],
+                                        config_value["input_source"])
+    logging.debug("Global config got successfully loaded and parsed.")
     logging.debug(global_config)
     return global_config
 
 
-def load_config():
+def load_global_config():
     try:
         config_list = _open_and_read_config_file()
     except IOError:
