@@ -5,12 +5,13 @@ import time
 import json
 from pathlib import Path
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from alive_progress import alive_bar
 
 from network_toolkit.config.mac_lookup_config import load_mac_lookup_config
 
 path_to_cache = Path.cwd() / "raw_output/mac_address_lookup/mac_address_cache.json"
+path_to_ieee_list = Path.cwd() / "raw_output/mac_address_lookup/ieee_mac_list.json"
 
 
 @dataclass(frozen=True)
@@ -60,6 +61,55 @@ def _format_mac_addresses(raw_mac_list):
         formatted_mac_list.append(mac_address_obj)
 
     return formatted_mac_list
+
+
+def _get_ieee_mac_list():
+    logging.info("Retrieving IEEE MAC address list...")
+    url_ieee_list = "https://standards-oui.ieee.org/oui/oui.txt"
+
+    try:
+        response = requests.get(url_ieee_list)
+    except requests.exceptions.ConnectionError:
+        logging.critical(f"Timeout - Please check address({url_ieee_list}) and reachability")
+        quit()
+    except Exception as e:
+        logging.critical(e)
+        quit()
+
+    if response.status_code != 200:
+        logging.warning(f"HTTP {response.status_code} - Could not retrieve IEEE list. Continuing...")
+
+    pattern = re.compile(r"([A-Za-z\d-]+)\s+\(hex\)\s+([^\r]+)")
+    formatted_ieee_list = dict(pattern.findall(response.text))
+
+    with open(path_to_ieee_list, "w") as json_file:
+        json.dump(formatted_ieee_list, json_file, indent=2)
+
+    logging.info("Updated IEEE list.")
+    return formatted_ieee_list
+
+
+def _check_ieee_list_needs_update():
+    if not path_to_ieee_list.is_file():
+        logging.warning("No IEEE list found.")
+        ieee_list = _get_ieee_mac_list()
+        return ieee_list
+
+    raw_change_time = Path(path_to_ieee_list).stat().st_mtime
+    change_time = datetime.fromtimestamp(raw_change_time)
+    time_now = datetime.now()
+    expiry_date = change_time + timedelta(days=7)
+    logging.debug(f"File Changetime: {change_time}\nAktuelle Zeit: {time_now}\nZeit in 1 Woche: {expiry_date}")
+
+    if time_now > expiry_date:
+        logging.warning(f"IEEE list is expired.")
+        ieee_list = _get_ieee_mac_list()
+        return ieee_list
+
+    with open(path_to_ieee_list, mode="r", encoding="utf-8") as file:
+        ieee_list = (json.load(file))
+
+    return ieee_list
 
 
 def _lookup_cache(formatted_mac_list):
@@ -113,6 +163,7 @@ def _lookup_webapi(unresolved_mac_list, resolved_mac_list, mac_cache, config):
                 quit()
             except Exception as e:
                 print(e)
+                quit()
             if response.status_code == 404:
                 resolved_mac_list[mac_entity.raw_mac] = "Unknown"
                 new_cache_entity = {"organisation": "Unknown", "oui": mac_entity.oui, "last_update": date_today}
@@ -147,6 +198,7 @@ def _print_lookup(mac_list):
 
 
 def mac_address_batch_lookup():
+    ieee_list = _check_ieee_list_needs_update()
     mac_lookup_config = load_mac_lookup_config()
     user_input = _prompt_user()
     raw_mac_list = _filter_mac_addresses(user_input)
